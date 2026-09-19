@@ -1,0 +1,357 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================================================
+   DESIGN TOKENS
+   Dark theme only. Values mirror the live Cynea demo engine byte-for-byte.
+   ========================================================================== */
+
+:root {
+  --background: #050505;
+  --foreground: #f5f5f5;
+  --card: #0e0e0e;
+  --card-hover: #151515;
+  --border: #1e1e1e;
+  --border-hi: #2a2a2a;
+  --muted: #8a8a8a;
+  --dim: #777;
+  --accent: #00d4ff;
+  --accent-hover: #00b8e6;
+  --accent-rgb: 0, 212, 255;
+  --success: #10b981;
+  --error: #ef4444;
+  --grid-line: hsla(0, 0%, 100%, 0.04);
+}
+
+* {
+  border-color: var(--border);
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-dm-sans), sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: rgba(var(--accent-rgb), 0.25);
+  color: var(--foreground);
+}
+
+/* Thin dark scrollbar so the demo chrome stays consistent. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-hi);
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #383838;
+}
+
+/* ==========================================================================
+   KEYFRAMES
+   Copied verbatim from the live demo stylesheet. Do not retune casually —
+   the guide/spotlight choreography depends on these exact curves.
+   ========================================================================== */
+
+@keyframes demo-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(14px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes demo-step-in {
+  0% {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes demo-scan {
+  0% {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(400%);
+  }
+}
+
+@keyframes demo-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes demo-fly {
+  0% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  to {
+    transform: translateX(160px) scale(0.85);
+    opacity: 0;
+  }
+}
+
+@keyframes demo-trail {
+  0% {
+    transform: scaleX(0);
+    opacity: 0.9;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 0;
+  }
+}
+
+@keyframes demo-pop {
+  0% {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+@keyframes demo-pulse-dot {
+  0%,
+  to {
+    box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0.55);
+  }
+  70% {
+    box-shadow: 0 0 0 7px rgba(var(--accent-rgb), 0);
+  }
+}
+
+@keyframes demo-glow {
+  0%,
+  to {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.06);
+  }
+}
+
+@keyframes demo-spot-pulse {
+  0%,
+  to {
+    border-color: rgba(var(--accent-rgb), 0.9);
+  }
+  50% {
+    border-color: rgba(var(--accent-rgb), 0.45);
+  }
+}
+
+@keyframes demo-word {
+  0% {
+    opacity: 0;
+    transform: translateY(3px);
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes demo-orb {
+  0%,
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.25);
+    opacity: 0.8;
+  }
+}
+
+@keyframes demo-orb-ring {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* ==========================================================================
+   ANIMATION UTILITIES
+   ========================================================================== */
+
+.demo-stage {
+  color-scheme: dark;
+}
+
+.demo-rise {
+  opacity: 0;
+  animation: demo-rise 0.64s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.demo-step-in {
+  animation: demo-step-in 0.65s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.demo-scan-bar {
+  position: relative;
+  overflow: hidden;
+}
+
+.demo-scan-bar:after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 25%;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  animation: demo-scan 1.4s linear infinite;
+}
+
+.demo-cursor {
+  animation: demo-blink 0.9s steps(1) infinite;
+}
+
+.demo-fly {
+  animation: demo-fly 0.52s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+}
+
+.demo-trail {
+  transform-origin: left center;
+  animation: demo-trail 0.52s ease-out forwards;
+}
+
+.demo-pop {
+  animation: demo-pop 0.38s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.demo-pulse-dot {
+  animation: demo-pulse-dot 1.8s ease-out infinite;
+}
+
+.demo-ring circle:last-child {
+  transition: stroke-dashoffset 0.9s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.demo-token {
+  background: rgba(var(--accent-rgb), 0.12);
+  border-bottom: 1px solid rgba(var(--accent-rgb), 0.45);
+  border-radius: 3px;
+  padding: 0 2px;
+  color: #cbefff;
+}
+
+.demo-glow {
+  animation: demo-glow 3s ease-in-out infinite;
+}
+
+/* The spotlight is a SINGLE element that glides between targets by
+   transitioning its box. It never re-mounts, which is what produces the
+   travelling effect in the live demo. */
+.demo-spot {
+  transition:
+    top 0.52s cubic-bezier(0.2, 0.8, 0.2, 1),
+    left 0.52s cubic-bezier(0.2, 0.8, 0.2, 1),
+    width 0.52s cubic-bezier(0.2, 0.8, 0.2, 1),
+    height 0.52s cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation: demo-spot-pulse 2.2s ease-in-out infinite;
+}
+
+.demo-annotation {
+  transition:
+    top 0.52s cubic-bezier(0.2, 0.8, 0.2, 1),
+    left 0.52s cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation: demo-rise 0.42s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* Guide typewriter reveals one WORD at a time, not one character. */
+.demo-word {
+  opacity: 0;
+  animation: demo-word 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.demo-orb {
+  animation: demo-orb 1.6s ease-in-out infinite;
+}
+
+.demo-orb-ring {
+  animation: demo-orb-ring 1.6s ease-out infinite;
+}
+
+/* Faint grid backdrop used behind the demo stage. */
+.demo-grid {
+  background-image:
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .demo-rise,
+  .demo-step-in,
+  .demo-pop,
+  .demo-word,
+  .demo-fly,
+  .demo-trail {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    opacity: 1 !important;
+    filter: none !important;
+    transform: none !important;
+  }
+
+  .demo-spot,
+  .demo-annotation,
+  .demo-glow,
+  .demo-orb,
+  .demo-orb-ring,
+  .demo-pulse-dot,
+  .demo-scan-bar:after,
+  .demo-cursor {
+    animation: none !important;
+    transition: none !important;
+  }
+}
