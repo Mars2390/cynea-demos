@@ -183,7 +183,7 @@ export function FinanceDemo({ initialStep }: { initialStep: string }) {
             ring and skeleton starts from zero again. */}
         <div key={`${stepId}-${runId}`} className="demo-step-in">
           {/* The agent's own description, verbatim from the brief. */}
-          <p className="demo-rise mb-5 max-w-3xl text-[13.5px] leading-relaxed text-muted sm:mb-6 sm:text-[14px]">
+          <p className="demo-rise demo-scrim mb-5 max-w-3xl text-[13.5px] leading-relaxed text-muted sm:mb-6 sm:text-[14px]">
             {descriptions[stepId]}
           </p>
           {stepId === 'capture' && <StepCapture />}
@@ -220,7 +220,7 @@ export function FinanceDemo({ initialStep }: { initialStep: string }) {
 function ReadyScreen({ onReplay }: { onReplay: () => void }) {
   return (
     <div className="demo-stage relative flex min-h-screen flex-col items-center justify-center px-5 py-24 text-center">
-      <div className="demo-rise relative">
+      <div className="demo-rise demo-scrim relative">
         <span
           aria-hidden
           className="relative mx-auto mb-8 flex h-14 w-14 items-center justify-center"

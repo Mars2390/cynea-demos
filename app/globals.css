@@ -17,6 +17,14 @@
    ========================================================================== */
 
 :root {
+  /* Ambient mesh strength. The defaults reproduce the original look; the
+     "glass" look raises them so the frosted panels have colour to show. */
+  --mesh-core: 0.17;
+  --mesh-mid: 0.05;
+  --mesh-c: 0;
+  --mesh-vignette: 0.75;
+  --mesh-scrim: 0;
+
   --background-ch: 7 8 14;
   --card-ch: 14 16 24;
   --card-hover-ch: 21 24 38;
@@ -92,6 +100,221 @@
   --on-accent-ch: 6 17 26;
 
   --grid-line: rgb(var(--foreground-ch) / 0.04);
+}
+
+/* ==========================================================================
+   LOOK — "Aurora Glass"  (prototype; opt-in via <html data-look="glass">)
+
+   Same brand accents and semantic colours as Tribunal / Tape. What changes:
+   the neutral chassis cools and lifts, the mesh becomes a visible aurora, and
+   panels turn into frosted glass over it. Everything lives in this block so
+   the look can be compared against the original on the same URL and removed
+   by deleting one attribute.
+
+   Coverage is by class, not by page: <Card> (demo-panel / demo-glass),
+   <Pill> (demo-pill), DemoShell + StepFooter + ready screens (demo-scrim) and
+   MeshBackground. A new suite built from those components inherits the look.
+   ========================================================================== */
+
+[data-look='glass'] {
+  /* Tribunal neutrals, cooled. Accents untouched. */
+  --background-ch: 8 12 26;
+  --card-ch: 16 22 44;
+  --card-hover-ch: 22 30 58;
+  --border-ch: 40 50 84;
+  --border-hi-ch: 60 72 112;
+  --foreground-ch: 245 247 253;
+  --muted-ch: 160 170 198;
+  --dim-ch: 142 152 182;
+
+  --grid-line: rgb(var(--foreground-ch) / 0.05);
+
+  --mesh-core: 0.5;
+  --mesh-mid: 0.2;
+  --mesh-c: 0.36;
+  --mesh-vignette: 0.45;
+  --mesh-scrim: 0.5;
+
+  /* Glass knobs. Desktop values; phones and coarse pointers lower the blur. */
+  --glass-blur: 16px;
+  --glass-sat: 150%;
+}
+
+[data-look='glass'] [data-suite='finance'] {
+  /* Tape neutrals, cooled. Accents untouched. */
+  --background-ch: 6 11 24;
+  --card-ch: 13 21 42;
+  --card-hover-ch: 19 29 56;
+  --border-ch: 36 48 84;
+  --border-hi-ch: 54 68 112;
+  --foreground-ch: 242 246 252;
+  --muted-ch: 156 168 198;
+  --dim-ch: 138 150 180;
+}
+
+/* Standard panel: frosted, lit along the top edge, lifted off the aurora. */
+[data-look='glass'] .demo-panel {
+  background:
+    linear-gradient(160deg, rgb(var(--foreground-ch) / 0.05), transparent 42%),
+    linear-gradient(180deg, rgb(var(--card-ch) / 0.7), rgb(var(--card-ch) / 0.84));
+  border-color: rgb(var(--foreground-ch) / 0.1);
+  box-shadow:
+    inset 0 1px 0 0 rgb(var(--foreground-ch) / 0.14),
+    inset 0 0 0 1px rgb(var(--foreground-ch) / 0.02),
+    0 24px 60px -32px rgb(0 0 0 / 0.75),
+    0 1px 2px rgb(0 0 0 / 0.25);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+}
+
+[data-look='glass'] .demo-panel:hover {
+  border-color: rgb(var(--foreground-ch) / 0.16);
+}
+
+/* Hero panel: a touch clearer than the rest, rimmed in the suite accent. */
+[data-look='glass'] .demo-glass {
+  background:
+    linear-gradient(160deg, rgb(var(--foreground-ch) / 0.06), transparent 40%),
+    linear-gradient(180deg, rgb(var(--card-ch) / 0.62), rgb(var(--card-ch) / 0.8));
+  border: 1px solid rgb(var(--accent-ch) / 0.22);
+  box-shadow:
+    inset 0 1px 0 0 rgb(var(--foreground-ch) / 0.16),
+    0 0 0 1px rgb(var(--accent-ch) / 0.06),
+    0 30px 70px -34px rgb(0 0 0 / 0.8),
+    0 1px 2px rgb(0 0 0 / 0.25);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+}
+
+/* Chrome: the strip and header frost at the same capped blur as the panels. */
+[data-look='glass'] [data-chrome='top-strip'],
+[data-look='glass'] .demo-stage > header {
+  background: rgb(var(--background-ch) / 0.55);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+}
+
+/* Text that sits on the bare aurora — step headers, descriptions, footers,
+   ready screens, hub header/footer — gets a soft scrim: one static blurred
+   rectangle behind the block, so small labels keep their contrast wherever a
+   blob happens to drift. Applied by class, so any future suite inherits it. */
+[data-look='glass'] .demo-scrim {
+  position: relative;
+}
+
+[data-look='glass'] .demo-scrim::before {
+  content: '';
+  position: absolute;
+  inset: -14px -20px;
+  z-index: -1;
+  border-radius: 24px;
+  background: rgb(var(--background-ch) / 0.6);
+  filter: blur(22px);
+  pointer-events: none;
+}
+
+/* Status chips: a dark base under the tint plus a hairline highlight, so a
+   coral or amber label reads as a chip on glass rather than tinted text. The
+   tone's tint is restored on top; semantic colour is unchanged. */
+[data-look='glass'] .demo-pill {
+  background-color: rgb(var(--background-ch) / 0.72);
+  box-shadow:
+    inset 0 1px 0 rgb(var(--foreground-ch) / 0.07),
+    0 1px 2px rgb(0 0 0 / 0.25);
+}
+
+[data-look='glass'] .demo-pill[data-tone='accent'] {
+  background-image: linear-gradient(rgb(var(--accent-ch) / 0.14), rgb(var(--accent-ch) / 0.14));
+}
+
+[data-look='glass'] .demo-pill[data-tone='success'] {
+  background-image: linear-gradient(rgb(var(--success-ch) / 0.14), rgb(var(--success-ch) / 0.14));
+}
+
+[data-look='glass'] .demo-pill[data-tone='warn'] {
+  background-image: linear-gradient(rgb(var(--warning-ch) / 0.14), rgb(var(--warning-ch) / 0.14));
+}
+
+[data-look='glass'] .demo-pill[data-tone='error'] {
+  background-image: linear-gradient(rgb(var(--error-ch) / 0.14), rgb(var(--error-ch) / 0.14));
+}
+
+[data-look='glass'] .demo-pill[data-tone='secondary'] {
+  background-image: linear-gradient(rgb(var(--accent-secondary-ch) / 0.14), rgb(var(--accent-secondary-ch) / 0.14));
+}
+
+[data-look='glass'] .demo-pill[data-tone='muted'] {
+  background-color: rgb(var(--card-hover-ch) / 0.85);
+}
+
+/* Hub: the aurora replaces the particle field; tiles are panels. */
+[data-look='glass'] .demo-particles {
+  display: none;
+}
+
+/* Mesh: promoted to their own compositor layers so the blur is rasterised
+   once and only transformed per frame, and drifting slower so the aurora
+   reads as weather rather than motion. */
+[data-look='glass'] .demo-mesh-a,
+[data-look='glass'] .demo-mesh-b,
+[data-look='glass'] .demo-mesh-c {
+  will-change: transform;
+}
+
+[data-look='glass'] .demo-mesh-a {
+  animation-duration: 38s;
+}
+
+[data-look='glass'] .demo-mesh-b {
+  animation-duration: 50s;
+}
+
+/* Subtle parallax: the whole aurora eases upward as the page scrolls.
+   Scroll-driven, no JavaScript; browsers without scroll timelines get the
+   static aurora. */
+@supports (animation-timeline: scroll()) {
+  [data-look='glass'] .demo-mesh-wrap {
+    animation: demo-parallax linear both;
+    animation-timeline: scroll(root);
+  }
+}
+
+@keyframes demo-parallax {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(0, -7vh, 0);
+  }
+}
+
+/* Phones and coarse pointers: lighter blur, same look. */
+@media (max-width: 767px), (pointer: coarse) {
+  [data-look='glass'] {
+    --glass-blur: 10px;
+  }
+}
+
+/* No backdrop-filter, or the viewer asked for less transparency: the panels
+   fall back to a near-solid surface so nothing depends on what is behind. */
+@supports not (backdrop-filter: blur(1px)) {
+  [data-look='glass'] .demo-panel,
+  [data-look='glass'] .demo-glass,
+  [data-look='glass'] [data-chrome='top-strip'],
+  [data-look='glass'] .demo-stage > header {
+    background: rgb(var(--card-ch) / 0.92);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  [data-look='glass'] .demo-panel,
+  [data-look='glass'] .demo-glass,
+  [data-look='glass'] [data-chrome='top-strip'],
+  [data-look='glass'] .demo-stage > header {
+    background: rgb(var(--card-ch) / 0.92);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
 }
 
 * {
@@ -332,6 +555,16 @@ body {
   }
 }
 
+@keyframes demo-mesh-c {
+  0%,
+  to {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(-6%, 6%, 0) scale(1.1);
+  }
+}
+
 @keyframes demo-skeleton {
   0% {
     background-position: -180% 0;
@@ -525,6 +758,10 @@ body {
   animation: demo-mesh-b 34s ease-in-out infinite;
 }
 
+.demo-mesh-c {
+  animation: demo-mesh-c 44s ease-in-out infinite;
+}
+
 /* Frosted panel. Translucent so the mesh reads through it. */
 .demo-glass {
   background: linear-gradient(
@@ -701,6 +938,8 @@ body {
   .demo-cursor,
   .demo-mesh-a,
   .demo-mesh-b,
+  .demo-mesh-c,
+  .demo-mesh-wrap,
   .demo-skeleton,
   .demo-next-pulse,
   .demo-topbar,

@@ -112,7 +112,7 @@ export function ParticleBackground() {
     <canvas
       ref={canvasRef}
       aria-hidden
-      className="pointer-events-none fixed inset-0 -z-10 h-full w-full"
+      className="demo-particles pointer-events-none fixed inset-0 -z-10 h-full w-full"
     />
   );
 }

@@ -219,7 +219,7 @@ export function ComplianceDemo({ initialStep }: { initialStep: string }) {
 function ReadyScreen({ onReplay }: { onReplay: () => void }) {
   return (
     <div className="demo-stage relative flex min-h-screen flex-col items-center justify-center px-5 py-24 text-center">
-      <div className="demo-rise relative">
+      <div className="demo-rise demo-scrim relative">
         <span
           aria-hidden
           className="relative mx-auto mb-8 flex h-14 w-14 items-center justify-center"

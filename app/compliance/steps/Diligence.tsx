@@ -661,7 +661,7 @@ function Stat({
     <div
       data-guide={guide}
       style={{ animationDelay: `${delay}ms` }}
-      className="demo-rise demo-sheen rounded-card border border-border bg-card px-4 py-3.5"
+      className="demo-rise demo-sheen demo-panel rounded-card border border-border bg-card px-4 py-3.5"
     >
       <span className="block font-mono text-[9px] uppercase tracking-eyebrow text-muted">
         {label}

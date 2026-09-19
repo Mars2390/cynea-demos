@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Syne, DM_Sans, JetBrains_Mono } from 'next/font/google';
 import { colors } from '@/lib/tokens';
+import { LOOK_BOOT_SCRIPT, LookSwitch } from '@/components/LookSwitch';
 import './globals.css';
 
 const syne = Syne({
@@ -46,9 +47,17 @@ export default function RootLayout({
       lang="en"
       className={`${syne.variable} ${dmSans.variable} ${jetbrainsMono.variable}`}
       style={{ colorScheme: 'dark' }}
+      // The look script may add data-look before React hydrates.
+      suppressHydrationWarning
     >
+      <head>
+        {/* PROTOTYPE — applies the remembered look before first paint. */}
+        <script dangerouslySetInnerHTML={{ __html: LOOK_BOOT_SCRIPT }} />
+      </head>
       <body className="bg-background text-foreground font-sans antialiased">
         {children}
+        {/* PROTOTYPE — review switch; remove with the prototype. */}
+        <LookSwitch />
       </body>
     </html>
   );

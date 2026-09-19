@@ -42,7 +42,7 @@ export function StepFooter({
 
   return (
     <div
-      className={`mt-8 flex flex-col gap-5 border-t border-border pt-5 transition-all duration-700 ease-demo sm:flex-row sm:items-center sm:justify-between ${
+      className={`demo-scrim mt-8 flex flex-col gap-5 border-t border-border pt-5 transition-all duration-700 ease-demo sm:flex-row sm:items-center sm:justify-between ${
         shown ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'
       }`}
     >

@@ -80,7 +80,7 @@ export default function HubPage() {
       <ParticleBackground />
 
       <main className="mx-auto max-w-6xl px-4 pb-28 pt-16 sm:px-5 sm:pt-28">
-        <header className="demo-rise max-w-3xl">
+        <header className="demo-rise demo-scrim max-w-3xl">
           <span className="font-mono text-[10px] uppercase tracking-eyebrow text-accent">
             Cynea AI · guided demos
           </span>
@@ -98,7 +98,7 @@ export default function HubPage() {
           ))}
         </div>
 
-        <footer className="mt-20 border-t border-border pt-6">
+        <footer className="demo-scrim mt-20 border-t border-border pt-6">
           <p className="max-w-2xl text-[12px] leading-relaxed text-dim">
             Every demo uses fictional data. No live systems are connected and
             nothing you do in a demo is submitted anywhere.
@@ -154,7 +154,7 @@ function DemoTile({ demo, delay }: { demo: DemoCard; delay: number }) {
   );
 
   const shell =
-    'group relative block rounded-card border p-5 transition-all duration-300 ease-demo';
+    'demo-panel group relative block rounded-card border p-5 transition-all duration-300 ease-demo';
 
   if (!demo.live) {
     return (

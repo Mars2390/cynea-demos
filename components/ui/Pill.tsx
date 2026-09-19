@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import type { CheckStatus } from '@/lib/types';
 
-type Tone = 'accent' | 'success' | 'muted' | 'warn' | 'secondary';
+type Tone = 'accent' | 'success' | 'muted' | 'warn' | 'error' | 'secondary';
 
 const tones: Record<Tone, string> = {
   accent: 'border-accent/40 bg-accent/10 text-accent',
@@ -10,6 +10,7 @@ const tones: Record<Tone, string> = {
     'border-accent-secondary/40 bg-accent-secondary/10 text-accent-secondary',
   muted: 'border-border-hi bg-card-hover text-muted',
   warn: 'border-warning/40 bg-warning/10 text-warning',
+  error: 'border-error/50 bg-error/10 text-error',
 };
 
 const dots: Record<Tone, string> = {
@@ -18,6 +19,7 @@ const dots: Record<Tone, string> = {
   secondary: 'bg-accent-secondary',
   muted: 'bg-muted',
   warn: 'bg-warning',
+  error: 'bg-error',
 };
 
 export function Pill({
@@ -37,7 +39,8 @@ export function Pill({
   return (
     <span
       data-guide={guide}
-      className={`inline-flex items-center gap-2 rounded-full border px-2.5 py-1 font-mono text-[10px] uppercase tracking-eyebrow ${tones[tone]} ${className}`}
+      data-tone={tone}
+      className={`demo-pill inline-flex items-center gap-2 rounded-full border px-2.5 py-1 font-mono text-[10px] uppercase tracking-eyebrow ${tones[tone]} ${className}`}
     >
       {dot && (
         <span

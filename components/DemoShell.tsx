@@ -118,7 +118,7 @@ export function DemoShell({
           onSelect={onSelectStep}
         />
 
-        <div key={step.id} className="demo-step-in mt-6 sm:mt-7">
+        <div key={step.id} className="demo-step-in demo-scrim mt-6 sm:mt-7">
           <span className="font-mono text-[10px] uppercase tracking-eyebrow text-accent">
             Step {step.number} of {steps.length} · {step.name}
           </span>

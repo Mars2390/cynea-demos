@@ -35,7 +35,7 @@ export function Card({
 
   const surface = glass
     ? 'demo-glass'
-    : 'border border-border bg-card hover:border-border-hi';
+    : 'demo-panel border border-border bg-card hover:border-border-hi';
 
   return (
     <div className="relative">

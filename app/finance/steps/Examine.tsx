@@ -66,8 +66,7 @@ export function StepExamine() {
           {claims.map((c, idx) => {
             const own = Math.max(0, Math.min(perClaim, ticks - idx * perClaim));
             const done = own >= perClaim;
-            // Escalated is amber like its card border, note and counter;
-            // rejected borrows the warn pill and recolours it red below.
+            // Escalated is amber like its card border, note and counter.
             const tone = c.outcome === 'approved' ? 'success' : 'warn';
             const border = !done
               ? 'border-border/60 bg-card/40'
@@ -102,13 +101,7 @@ export function StepExamine() {
                     </span>
                     {done ? (
                       <span className="demo-pop block">
-                        {c.outcome === 'rejected' ? (
-                          <Pill tone="warn" className="!border-error/50 !bg-error/10 !text-error">
-                            {label}
-                          </Pill>
-                        ) : (
-                          <Pill tone={tone}>{label}</Pill>
-                        )}
+                        <Pill tone={c.outcome === 'rejected' ? 'error' : tone}>{label}</Pill>
                       </span>
                     ) : (
                       <Pill tone="muted">{own > 0 ? 'Checking' : 'Queued'}</Pill>
