@@ -78,6 +78,16 @@ export const easing = 'cubic-bezier(.2,.8,.2,1)';
  * (gold). Values are channel triplets assigned to --mesh-a / --mesh-b.
  */
 export const meshByStep: Record<string, { a: string; b: string }> = {
+  /* Compliance suite: indigo for watching and screening, emerald once the
+     evidence is in the field, gold as the year closes into reports and audit. */
+  sentinel: { a: ch.accentSecondary, b: ch.accent },
+  screen: { a: ch.accentSecondary, b: ch.success },
+  diligence: { a: ch.success, b: ch.accentSecondary },
+  carbon: { a: ch.success, b: ch.accent },
+  ledger: { a: ch.accentSecondary, b: ch.accent },
+  registrar: { a: ch.accent, b: ch.accentSecondary },
+
+  /* Diligence, standalone. */
   consignment: { a: ch.accentSecondary, b: ch.accent },
   collect: { a: ch.success, b: ch.accentSecondary },
   assess: { a: ch.accentSecondary, b: ch.accent },

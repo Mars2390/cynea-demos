@@ -125,6 +125,11 @@ export function DemoShell({
           <h1 className="mt-2.5 max-w-3xl font-display text-[27px] font-semibold leading-[1.1] tracking-display text-foreground xs:text-[32px] sm:text-[40px] lg:text-[46px]">
             {step.title}
           </h1>
+          {step.role && (
+            <span className="mt-2.5 block font-mono text-[10px] uppercase tracking-eyebrow text-muted">
+              {step.role}
+            </span>
+          )}
         </div>
       </div>
 

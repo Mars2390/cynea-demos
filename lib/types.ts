@@ -11,6 +11,12 @@ export interface Step {
   id: string;
   /** Short label for the stepper segment, e.g. "Collect". */
   name: string;
+  /**
+   * The agent behind this step, e.g. "Regulatory Watch Agent". Only suites
+   * that chain several agents set it; a single-agent demo leaves it out and
+   * nothing is rendered.
+   */
+  role?: string;
   /** Headline shown at the top of the stage. */
   title: string;
   /** "Why this matters" footer copy. Null hides the footer. */

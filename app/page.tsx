@@ -6,11 +6,11 @@ import type { DemoCard } from '@/lib/types';
 
 const demos: DemoCard[] = [
   {
-    slug: 'diligence',
-    name: 'Diligence',
-    role: 'EUDR Due Diligence Agent',
+    slug: 'compliance',
+    name: 'Compliance',
+    role: 'Six agents · one workflow',
     blurb:
-      'Detects EUDR scope, collects plot-level geolocation, runs a five-point risk assessment and produces a TRACES-ready statement.',
+      'One importer’s compliance year end to end: regulatory watch, KYC screening, EUDR due diligence, CBAM reporting, ESG data and audit trail.',
     live: true,
   },
   {

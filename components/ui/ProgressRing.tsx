@@ -28,6 +28,7 @@ export function ProgressRing({
   label,
   sublabel,
   delayMs = 0,
+  live = false,
 }: {
   percent: number;
   run: boolean;
@@ -38,6 +39,14 @@ export function ProgressRing({
   label?: string;
   sublabel?: string;
   delayMs?: number;
+  /**
+   * Set when `percent` is driven by live progress rather than a single sweep.
+   *
+   * The default 1.1s transition restarts on every value change, so a ring
+   * tracking a checklist that ticks every 500ms never catches up and sits
+   * visibly behind its own label. A shorter duration keeps it in step.
+   */
+  live?: boolean;
 }) {
   const reduced = useReducedMotion();
   const [filled, setFilled] = useState(false);
@@ -58,9 +67,15 @@ export function ProgressRing({
   const clamped = Math.max(0, Math.min(100, percent));
   const r = (size - stroke) / 2;
   const circumference = 2 * Math.PI * r;
-  const offset = filled
-    ? circumference * (1 - clamped / 100)
-    : circumference;
+  /**
+   * `filled` exists only to create the opening sweep from empty for a ring
+   * whose value is known up front. A live ring already starts at 0%, so the
+   * latch adds nothing — and if its timer is ever cleared by a re-render the
+   * ring stays empty forever while its own label reads 4/4. Live rings bypass
+   * it and track `percent` directly.
+   */
+  const offset =
+    live || filled ? circumference * (1 - clamped / 100) : circumference;
 
   return (
     <div
@@ -92,8 +107,19 @@ export function ProgressRing({
           strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          style={{ transitionDelay: `${delayMs}ms` }}
+          /* strokeDashoffset goes through `style`, not the SVG presentation
+             attribute. Chrome will not reliably transition an attribute-driven
+             value: the attribute updated correctly while the computed value
+             stayed pinned, so the ring snapped instead of sweeping. */
+          style={{
+            strokeDashoffset: offset,
+            /* A live ring gets no delay: the delay only exists to stagger the
+               opening sweep, and it restarts on every value change — so a ring
+               fed new values every 500ms never finishes a transition and sits
+               at its start value until the updates stop. */
+            transitionDelay: live ? '0ms' : `${delayMs}ms`,
+            ...(live ? { transitionDuration: '380ms' } : null),
+          }}
         />
       </svg>
 

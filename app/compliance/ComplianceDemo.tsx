@@ -1,0 +1,275 @@
+'use client';
+
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
+import { DemoShell } from '@/components/DemoShell';
+import { GuideBubble } from '@/components/GuideBubble';
+import { StepFooter } from '@/components/StepFooter';
+import { MeshBackground } from '@/components/MeshBackground';
+import { ParticleBackground } from '@/components/ParticleBackground';
+import { Button } from '@/components/ui/Button';
+import { Pill } from '@/components/ui/Pill';
+import { timing } from '@/lib/timing';
+import { useIntroSettled, useKeyboard, useReducedMotion } from '@/lib/hooks';
+import { tweenScrollTo } from '@/lib/scroll';
+import { agent, readyStep, steps } from '@/demos/compliance/config';
+import { guide } from '@/demos/compliance/guide';
+import {
+  StepCarbon,
+  StepDiligence,
+  StepLedger,
+  StepRegistrar,
+  StepScreen,
+  StepSentinel,
+} from './steps';
+
+const READY = readyStep.id;
+const BASE = '/compliance';
+
+const isValidStep = (id: string) =>
+  id === READY || steps.some((s) => s.id === id);
+
+/** Derives the step id from a pathname like /compliance/carbon. */
+function stepFromPathname(pathname: string): string {
+  const segment = pathname.replace(/\/+$/, '').split('/').pop() ?? '';
+  return isValidStep(segment) ? segment : steps[0].id;
+}
+
+/**
+ * The Compliance suite: six agents told as one importer's compliance year.
+ *
+ * Same engine as the standalone demos — the step lives in the URL path and the
+ * server already rendered the right one via `initialStep`, so there is no
+ * switch-on-hydration. In-demo navigation uses history.pushState so this
+ * component never unmounts, which keeps the Guide / Auto-play toggles and the
+ * autoplay timer alive across all six steps.
+ *
+ * There is deliberately no ?step= back-compat here: /compliance is a new route
+ * with no legacy links. That redirect belongs only to /diligence, which is
+ * handled at the routing layer in next.config.js.
+ */
+export function ComplianceDemo({ initialStep }: { initialStep: string }) {
+  const [stepId, setStepId] = useState(initialStep);
+  const [guideOn, setGuideOn] = useState(true);
+  const [autoplayOn, setAutoplayOn] = useState(true);
+  const [firedEvents, setFiredEvents] = useState<string[]>([
+    `step:${initialStep}`,
+  ]);
+  /** Bumped by Replay to force a full remount of the step subtree. */
+  const [runId, setRunId] = useState(0);
+
+  const advanceCueRef = useRef<(() => void) | null>(null);
+  const reduced = useReducedMotion();
+
+  // Follow browser back/forward.
+  useEffect(() => {
+    const onPop = () => setStepId(stepFromPathname(window.location.pathname));
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
+
+  const goto = useCallback((id: string) => {
+    setStepId(id);
+    window.history.pushState({}, '', `${BASE}/${id}`);
+  }, []);
+
+  /**
+   * Return to the top when the step changes.
+   *
+   * In an effect rather than inside `goto` because of effect ordering: React
+   * runs child effects before parent effects, and GuideBubble cancels any
+   * in-flight scroll on a step change. Starting it inside `goto` — which runs
+   * during the event, before any effect — meant the bubble cancelled it.
+   */
+  const firstStepRender = useRef(true);
+  useEffect(() => {
+    if (firstStepRender.current) {
+      firstStepRender.current = false;
+      return;
+    }
+    tweenScrollTo(0, { reduced });
+  }, [stepId, runId, reduced]);
+
+  // Emit a step:<id> event whenever the step changes, for event-gated cues.
+  useEffect(() => {
+    setFiredEvents((prev) =>
+      prev.includes(`step:${stepId}`) ? prev : [...prev, `step:${stepId}`],
+    );
+  }, [stepId]);
+
+  const activeIndex = useMemo(
+    () => Math.max(steps.findIndex((s) => s.id === stepId), 0),
+    [stepId],
+  );
+  const step = steps[activeIndex];
+  const isReady = stepId === READY;
+
+  const next = useCallback(() => {
+    const i = steps.findIndex((s) => s.id === stepId);
+    if (i === -1) return;
+    goto(i === steps.length - 1 ? READY : steps[i + 1].id);
+  }, [stepId, goto]);
+
+  const prev = useCallback(() => {
+    if (isReady) {
+      goto(steps[steps.length - 1].id);
+      return;
+    }
+    const i = steps.findIndex((s) => s.id === stepId);
+    if (i > 0) goto(steps[i - 1].id);
+  }, [stepId, isReady, goto]);
+
+  /** Full reset: clears fired cues and remounts the step subtree. */
+  const replay = useCallback(() => {
+    setFiredEvents([`step:${steps[0].id}`]);
+    setRunId((n) => n + 1);
+    setAutoplayOn(true);
+    setGuideOn(true);
+    goto(steps[0].id);
+  }, [goto]);
+
+  const settled = useIntroSettled(`${stepId}-${runId}`);
+
+  // Auto-play advances only after the intro has settled, so a step is never
+  // cut off mid-reveal.
+  useEffect(() => {
+    if (!autoplayOn || isReady || !settled) return;
+    const t = setTimeout(next, timing.autoplayStepMs);
+    return () => clearTimeout(t);
+  }, [autoplayOn, isReady, settled, next, stepId, runId]);
+
+  // Arrows move between steps; Space advances a guide cue; Esc opens replay.
+  useKeyboard({
+    ArrowRight: () => {
+      if (!isReady) next();
+    },
+    ArrowLeft: prev,
+    ' ': () => advanceCueRef.current?.(),
+    Escape: () => {
+      if (isReady) replay();
+      else goto(READY);
+    },
+  });
+
+  /** 0–1 across the whole flow, including the ready screen. */
+  const progress = isReady ? 1 : (activeIndex + 1) / (steps.length + 1);
+
+  if (isReady) {
+    return (
+      <>
+        <MeshBackground stepId={READY} />
+        <ParticleBackground />
+        <ReadyScreen onReplay={replay} />
+      </>
+    );
+  }
+
+  return (
+    <>
+      <ParticleBackground />
+
+      <DemoShell
+        agent={agent.name}
+        tagline={agent.role}
+        steps={steps}
+        activeIndex={activeIndex}
+        stepId={stepId}
+        progress={progress}
+        onSelectStep={goto}
+        guideOn={guideOn}
+        onToggleGuide={() => setGuideOn((v) => !v)}
+        autoplayOn={autoplayOn}
+        onToggleAutoplay={() => setAutoplayOn((v) => !v)}
+        onSkip={() => goto(READY)}
+      >
+        {/* runId in the key makes Replay remount the step, so every counter,
+            ring and skeleton starts from zero again. */}
+        <div key={`${stepId}-${runId}`} className="demo-step-in">
+          {stepId === 'sentinel' && <StepSentinel />}
+          {stepId === 'screen' && <StepScreen />}
+          {stepId === 'diligence' && <StepDiligence />}
+          {stepId === 'carbon' && <StepCarbon />}
+          {stepId === 'ledger' && <StepLedger />}
+          {stepId === 'registrar' && <StepRegistrar />}
+        </div>
+
+        <StepFooter
+          why={step.why}
+          next={step.next}
+          onNext={next}
+          stepId={`${stepId}-${runId}`}
+          attention={settled}
+          guideOn={guideOn}
+        />
+      </DemoShell>
+
+      <GuideBubble
+        cues={guide[stepId] ?? []}
+        stepId={`${stepId}-${runId}`}
+        enabled={guideOn}
+        firedEvents={firedEvents}
+        onAdvanceRef={advanceCueRef}
+      />
+    </>
+  );
+}
+
+/* ======================================================================== */
+
+function ReadyScreen({ onReplay }: { onReplay: () => void }) {
+  return (
+    <div className="demo-stage relative flex min-h-screen flex-col items-center justify-center px-5 py-24 text-center">
+      <div className="demo-rise relative">
+        <span
+          aria-hidden
+          className="relative mx-auto mb-8 flex h-14 w-14 items-center justify-center"
+        >
+          <span className="demo-orb-ring absolute h-14 w-14 rounded-full bg-accent/25" />
+          <span className="demo-orb flex h-10 w-10 items-center justify-center rounded-full border border-accent/50 bg-accent/15 shadow-glow-accent">
+            <span className="h-2.5 w-2.5 rounded-full bg-accent" />
+          </span>
+        </span>
+
+        <Pill tone="accent" className="mb-6">
+          Demo complete
+        </Pill>
+
+        <h1 className="mx-auto max-w-3xl font-display text-[27px] font-semibold leading-[1.1] tracking-display text-foreground xs:text-[32px] sm:text-[40px] lg:text-[48px]">
+          {readyStep.heading}
+        </h1>
+
+        <p className="mx-auto mt-4 max-w-xl text-[15px] leading-relaxed text-muted sm:text-[17px]">
+          {readyStep.sub}
+        </p>
+
+        <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
+          <Button href={readyStep.bookHref} pulse>
+            {readyStep.bookLabel}
+          </Button>
+          <Button variant="ghost" onClick={onReplay}>
+            {readyStep.replayLabel}
+          </Button>
+        </div>
+
+        <div className="mt-7 flex flex-wrap items-center justify-center gap-2">
+          {readyStep.trustPills.map((t) => (
+            <Pill key={t} tone="muted">
+              {t}
+            </Pill>
+          ))}
+        </div>
+
+        <p className="mx-auto mt-10 max-w-xl border-t border-border pt-6 text-[12px] leading-relaxed text-dim">
+          {readyStep.disclaimer}
+        </p>
+
+        <Link
+          href="/"
+          className="mt-8 inline-block font-mono text-[10px] uppercase tracking-eyebrow text-muted transition-colors hover:text-accent"
+        >
+          ← All Cynea demos
+        </Link>
+      </div>
+    </div>
+  );
+}
