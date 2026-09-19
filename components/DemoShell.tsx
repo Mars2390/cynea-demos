@@ -6,6 +6,7 @@ import type { Step } from '@/lib/types';
 import { Stepper } from './Stepper';
 import { MeshBackground } from './MeshBackground';
 import { TopProgressBar } from './TopProgressBar';
+import { CHROME_TOP } from '@/lib/scroll';
 
 /**
  * Chrome shared by every agent demo:
@@ -52,7 +53,10 @@ export function DemoShell({
       <TopProgressBar progress={progress} />
 
       {/* 1 — demo mode strip */}
-      <div className="sticky top-0 z-40 border-b border-accent/20 bg-background/70 backdrop-blur-xl">
+      <div
+        data-chrome={CHROME_TOP}
+        className="sticky top-0 z-40 border-b border-accent/20 bg-background/70 backdrop-blur-xl"
+      >
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-1.5 sm:px-5">
           <span className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-eyebrow text-accent">
             <span
@@ -124,7 +128,17 @@ export function DemoShell({
         </div>
       </div>
 
-      <main className="mx-auto max-w-6xl px-4 pb-40 pt-7 sm:px-5 sm:pb-32 sm:pt-8">
+      {/* With the guide on, the trailing space is load-bearing rather than
+          cosmetic: guided scrolling has to be able to lift a target near the
+          end of the document clear of the fixed bubble, which needs roughly one
+          bubble-height of scroll range beyond the last element. With the guide
+          off there is no bubble and no guided scrolling, so the same space
+          would just be an empty gap — a third of a phone viewport. */}
+      <main
+        className={`mx-auto max-w-6xl px-4 pt-7 sm:px-5 sm:pt-8 ${
+          guideOn ? 'pb-[200px]' : 'pb-20'
+        }`}
+      >
         {children}
       </main>
     </div>

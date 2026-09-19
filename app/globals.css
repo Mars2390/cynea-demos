@@ -67,7 +67,12 @@
 html,
 body {
   max-width: 100vw;
-  overflow-x: hidden;
+  /* `clip`, not `hidden`. `overflow-x: hidden` computes `overflow-y: auto`,
+     which turns the body into a scroll container and silently breaks
+     `position: sticky` for every descendant — the "Demo mode" strip scrolled
+     away instead of sticking. `clip` prevents horizontal overflow without
+     creating a scrollport. */
+  overflow-x: clip;
 }
 
 body {
@@ -427,6 +432,39 @@ body {
     top 0.52s cubic-bezier(0.2, 0.8, 0.2, 1),
     left 0.52s cubic-bezier(0.2, 0.8, 0.2, 1);
   animation: demo-rise 0.42s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/**
+ * The bubble yields while the spotlit target is passing behind it.
+ *
+ * A target that starts below the fold has to travel up through the bottom-left
+ * corner to reach its resting place, which is exactly where the bubble sits.
+ * Rather than move the bubble — which would read as a jump — it goes
+ * translucent for the moment of transit and comes straight back. The class is
+ * applied only while the two actually overlap, so it is brief and rare.
+ */
+.demo-bubble-yield {
+  /* !important is load-bearing: the bubble's demo-rise animation uses
+     `forwards`, and a filled animation value outranks a normal declaration in
+     the cascade. Only an !important author rule beats it. */
+  opacity: 0.35 !important;
+  /* Yield quickly so the target is never briefly occluded at the start of a
+     transit; the restore uses the element's slower base duration. */
+  transition-duration: 90ms !important;
+}
+
+/**
+ * Applied for exactly the length of a guided scroll.
+ *
+ * The spotlight re-measures its target every frame, so during a scroll the
+ * 0.52s position transition would make it lag and smear behind the element it
+ * is supposed to be marking. Removing the transition glues it to the target;
+ * it is restored the moment the scroll settles, so travel between targets
+ * still glides.
+ */
+.demo-spot-glued,
+.demo-annotation.demo-spot-glued {
+  transition: none !important;
 }
 
 /* Guide typewriter reveals one WORD at a time, not one character. */

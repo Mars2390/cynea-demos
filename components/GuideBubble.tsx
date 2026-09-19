@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { GuideCue } from '@/lib/types';
 import { cueHoldMs, timing, wordDelay } from '@/lib/timing';
 import { useReducedMotion } from '@/lib/hooks';
+import { CHROME_BUBBLE, cancelScroll, guideTargetIntoView } from '@/lib/scroll';
 import { AnnotationChip } from './ui/AnnotationChip';
 
 interface Rect {
@@ -15,14 +16,17 @@ interface Rect {
 
 /** Padding around a spotlit element. */
 const SPOT_PAD = 10;
-/** Below this viewport width the spotlight is suppressed: on a phone the
- *  travelling box fights the layout more than it helps. */
-const SPOT_MIN_WIDTH = 768;
 
 /**
  * Bottom-left guide bubble: mono eyebrow, word-by-word typewriter copy, and a
  * "click or space for next" hint. Drives a single travelling spotlight plus an
  * optional annotation chip.
+ *
+ * When a cue targets an element that is off-screen, the page scrolls it into
+ * the band that is free of fixed chrome before the spotlight settles there —
+ * see lib/scroll.ts. The spotlight stays visible and glued to the target for
+ * the whole journey, which reads as being taken somewhere rather than as a
+ * dead pause.
  *
  * Space (or clicking the bubble) advances a cue. Arrow keys are deliberately
  * NOT handled here — they belong to step navigation, so no key does two jobs.
@@ -46,7 +50,19 @@ export function GuideBubble({
   const [index, setIndex] = useState(0);
   const [visible, setVisible] = useState(false);
   const [rect, setRect] = useState<Rect | null>(null);
+  /** True only while a guided scroll is in flight. */
+  const [scrolling, setScrolling] = useState(false);
+  /**
+   * True while the spotlit target overlaps the bubble. Combined with
+   * `scrolling`, this makes the bubble yield only for the moment of transit:
+   * a target taller than the safe band always extends behind the bubble at
+   * rest, and dimming for the whole cue would be wrong.
+   */
+  const [yielding, setYielding] = useState(false);
+  const bubbleRef = useRef<HTMLButtonElement | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** Tears down the drift watcher for the cue that is going away. */
+  const disposeWatchRef = useRef<(() => void) | null>(null);
   const reduced = useReducedMotion();
 
   const clearTimer = () => {
@@ -56,11 +72,19 @@ export function GuideBubble({
     }
   };
 
+  const stopWatching = () => {
+    disposeWatchRef.current?.();
+    disposeWatchRef.current = null;
+  };
+
   // Reset whenever the step changes.
   useEffect(() => {
     clearTimer();
+    stopWatching();
+    cancelScroll();
     setIndex(0);
     setVisible(false);
+    setScrolling(false);
   }, [stepId]);
 
   const cue = enabled ? cues[index] : undefined;
@@ -86,7 +110,13 @@ export function GuideBubble({
     };
   }, [advance, enabled, onAdvanceRef]);
 
-  // Reveal the current cue after its gate delay, then schedule the next one.
+  /**
+   * Reveal the current cue, bring its target into view, then schedule the next.
+   *
+   * The scroll is kicked off here rather than in the measuring effect below so
+   * its duration is known at the moment the dwell timer is set: travel time is
+   * added to the hold, otherwise a long scroll would eat the reading time.
+   */
   useEffect(() => {
     if (!cue || !gateOpen) {
       setVisible(false);
@@ -101,10 +131,27 @@ export function GuideBubble({
     const showTimer = setTimeout(() => {
       setVisible(true);
 
+      let scrollMs = 0;
+      if (cue.target) {
+        const el = document.querySelector<HTMLElement>(
+          `[data-guide="${cue.target}"]`,
+        );
+        if (el) {
+          const guided = guideTargetIntoView(el, {
+            reduced,
+            onStart: () => setScrolling(true),
+            onDone: () => setScrolling(false),
+          });
+          scrollMs = guided.durationMs;
+          disposeWatchRef.current = guided.dispose;
+        }
+      }
+      if (scrollMs === 0) setScrolling(false);
+
       if (index < cues.length - 1) {
         timerRef.current = setTimeout(
           () => setIndex((i) => Math.min(i + 1, cues.length - 1)),
-          cueHoldMs(cue.text),
+          cueHoldMs(cue.text) + scrollMs,
         );
       }
     }, openDelay);
@@ -112,12 +159,15 @@ export function GuideBubble({
     return () => {
       clearTimeout(showTimer);
       clearTimer();
+      stopWatching();
+      cancelScroll();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cue?.text, gateOpen, index, cues.length, stepId]);
+  }, [cue?.text, cue?.target, gateOpen, index, cues.length, stepId, reduced]);
 
   // Track the spotlight target. Polled per frame so the box follows elements
-  // that are still animating in, and stays correct through scroll and resize.
+  // that are still animating in, stays glued through a guided scroll, and
+  // remains correct through manual scrolling and resize.
   const target = visible ? cue?.target : undefined;
 
   useEffect(() => {
@@ -128,23 +178,32 @@ export function GuideBubble({
 
     let frame = 0;
     const tick = () => {
-      if (window.innerWidth < SPOT_MIN_WIDTH) {
-        setRect(null);
+      const el = document.querySelector<HTMLElement>(
+        `[data-guide="${target}"]`,
+      );
+      if (el) {
+        const r = el.getBoundingClientRect();
+        setRect({
+          top: r.top - SPOT_PAD,
+          left: r.left - SPOT_PAD,
+          width: r.width + SPOT_PAD * 2,
+          height: r.height + SPOT_PAD * 2,
+        });
+
+        // Yield only while the target is genuinely behind the bubble.
+        const b = bubbleRef.current?.getBoundingClientRect();
+        const overlapping = b
+          ? !(
+              r.right < b.left ||
+              r.left > b.right ||
+              r.bottom < b.top ||
+              r.top > b.bottom
+            )
+          : false;
+        setYielding((prev) => (prev === overlapping ? prev : overlapping));
       } else {
-        const el = document.querySelector<HTMLElement>(
-          `[data-guide="${target}"]`,
-        );
-        if (el) {
-          const r = el.getBoundingClientRect();
-          setRect({
-            top: r.top - SPOT_PAD,
-            left: r.left - SPOT_PAD,
-            width: r.width + SPOT_PAD * 2,
-            height: r.height + SPOT_PAD * 2,
-          });
-        } else {
-          setRect(null);
-        }
+        setRect(null);
+        setYielding(false);
       }
       frame = requestAnimationFrame(tick);
     };
@@ -153,9 +212,19 @@ export function GuideBubble({
     return () => cancelAnimationFrame(frame);
   }, [target]);
 
+  // Release any tween and watcher if the guide is switched off or unmounts.
+  useEffect(
+    () => () => {
+      stopWatching();
+      cancelScroll();
+    },
+    [],
+  );
+
   if (!enabled || !cue) return null;
 
   const words = cue.text.trim().split(/\s+/);
+  const glued = scrolling ? 'demo-spot-glued' : '';
 
   return (
     <>
@@ -163,7 +232,7 @@ export function GuideBubble({
       {rect && (
         <div
           aria-hidden
-          className="demo-spot pointer-events-none fixed z-50 rounded-[14px] border-2 shadow-spot"
+          className={`demo-spot pointer-events-none fixed z-50 rounded-[14px] border-2 shadow-spot ${glued}`}
           style={{
             top: rect.top,
             left: rect.left,
@@ -178,16 +247,19 @@ export function GuideBubble({
           text={cue.annotation}
           top={Math.max(rect.top - 30, 8)}
           left={rect.left + 4}
+          glued={scrolling}
         />
       )}
 
       {/* The bubble. Frosted so the mesh reads through it. */}
       <button
+        ref={bubbleRef}
         type="button"
+        data-chrome={CHROME_BUBBLE}
         onClick={advance}
         aria-live="polite"
         aria-label="Guide. Click to advance."
-        className="demo-glass demo-rise fixed bottom-4 left-4 z-[70] max-w-[calc(100vw-2rem)] cursor-pointer rounded-card p-4 text-left transition-colors duration-200 hover:border-accent/40 sm:bottom-5 sm:left-5 sm:max-w-[360px]"
+        className={`demo-glass demo-rise fixed bottom-4 left-4 z-[70] max-w-[calc(100vw-2rem)] cursor-pointer rounded-card p-4 text-left transition-[color,border-color,opacity] duration-200 hover:border-accent/40 sm:bottom-5 sm:left-5 sm:max-w-[360px] ${scrolling && yielding ? 'demo-bubble-yield' : ''}`}
       >
         <div className="mb-2 flex items-center gap-2">
           <span

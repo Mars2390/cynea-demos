@@ -53,6 +53,36 @@ export const timing = {
 
   /** First paint budget: content must be on screen well inside this. */
   firstPaintMs: 1000,
+
+  /* --- guided scrolling --- */
+
+  /** Scroll tween bounds. Duration scales with distance between these. */
+  scrollMinMs: 320,
+  scrollMaxMs: 720,
+  scrollMsPerPx: 0.6,
+
+  /** Breathing room kept between a spotlit target and the safe-area edges. */
+  scrollPadPx: 16,
+
+  /** Below this, a correction reads as a twitch rather than a move. */
+  scrollMinDeltaPx: 24,
+
+  /**
+   * Where a target that fits the safe band comes to rest, as a fraction of the
+   * leftover space above it. 0.42 puts it just above true centre — optical
+   * centre — and keeps it clear of the guide bubble's corner.
+   */
+  scrollBiasFromTop: 0.42,
+
+  /**
+   * A step's layout keeps settling after its first cue fires (skeletons swap
+   * for content, scan-log lines append), so the target is re-checked on this
+   * interval and corrected if it has drifted out of the band.
+   */
+  scrollRecheckMs: 300,
+  /** Hard bounds on the watcher so it always terminates. */
+  scrollWatchMs: 6000,
+  scrollMaxCorrections: 4,
 } as const;
 
 /** Word-stagger delay helper for the guide bubble. */

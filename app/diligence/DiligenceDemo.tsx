@@ -10,7 +10,8 @@ import { ParticleBackground } from '@/components/ParticleBackground';
 import { Button } from '@/components/ui/Button';
 import { Pill } from '@/components/ui/Pill';
 import { timing } from '@/lib/timing';
-import { useIntroSettled, useKeyboard } from '@/lib/hooks';
+import { useIntroSettled, useKeyboard, useReducedMotion } from '@/lib/hooks';
+import { tweenScrollTo } from '@/lib/scroll';
 import { agent, readyStep, steps } from '@/demos/diligence/config';
 import { guide } from '@/demos/diligence/guide';
 import {
@@ -57,6 +58,7 @@ export function DiligenceDemo({ initialStep }: { initialStep: string }) {
   const [runId, setRunId] = useState(0);
 
   const advanceCueRef = useRef<(() => void) | null>(null);
+  const reduced = useReducedMotion();
 
   // Follow browser back/forward.
   useEffect(() => {
@@ -85,8 +87,29 @@ export function DiligenceDemo({ initialStep }: { initialStep: string }) {
   const goto = useCallback((id: string) => {
     setStepId(id);
     window.history.pushState({}, '', `${BASE}/${id}`);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
+
+  /**
+   * Return to the top when the step changes.
+   *
+   * This lives in an effect rather than inside `goto` because of effect
+   * ordering: React runs child effects before parent effects, and GuideBubble
+   * cancels any in-flight scroll when the step changes. Starting the scroll
+   * inside `goto` — which runs during the event, before any effect — meant the
+   * bubble immediately cancelled it and the page just stayed where it was.
+   *
+   * Routed through the same tween as guided scrolling so a step change honours
+   * prefers-reduced-motion, which behavior:'smooth' does not.
+   */
+  const firstStepRender = useRef(true);
+  useEffect(() => {
+    if (firstStepRender.current) {
+      // Never yank the first paint: a deep link is already at the right place.
+      firstStepRender.current = false;
+      return;
+    }
+    tweenScrollTo(0, { reduced });
+  }, [stepId, runId, reduced]);
 
   // Emit a step:<id> event whenever the step changes, for event-gated cues.
   useEffect(() => {

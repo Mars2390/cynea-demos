@@ -7,15 +7,18 @@ export function AnnotationChip({
   text,
   top,
   left,
+  glued = false,
 }: {
   text: string;
   top: number;
   left: number;
+  /** Suppress the position transition while a guided scroll is in flight. */
+  glued?: boolean;
 }) {
   return (
     <div
       aria-hidden
-      className="demo-annotation pointer-events-none fixed z-[60] whitespace-nowrap rounded-chip border border-accent/50 bg-background/95 px-2 py-1 font-mono text-[10px] uppercase tracking-eyebrow text-accent shadow-glow-accent backdrop-blur-sm"
+      className={`demo-annotation pointer-events-none fixed z-[60] whitespace-nowrap rounded-chip border border-accent/50 bg-background/95 px-2 py-1 font-mono text-[10px] uppercase tracking-eyebrow text-accent shadow-glow-accent backdrop-blur-sm ${glued ? 'demo-spot-glued' : ''}`}
       style={{ top, left }}
     >
       {text}
