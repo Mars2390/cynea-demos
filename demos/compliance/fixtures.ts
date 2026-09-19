@@ -185,6 +185,8 @@ export const esgTotals = {
   frameworks: 3,
   compiledAt: '12 Dec 2026 · 08:12 CET',
   status: 'Backed by data, not estimates',
+  /** Cited by the Registrar audit trail, so it has to be visible here too. */
+  reference: 'ESG-FY2026-0004',
 } as const;
 
 /** Category counts sum to the 87 gathered. */

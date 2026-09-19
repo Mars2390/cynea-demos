@@ -1,6 +1,6 @@
 'use client';
 
-import { Card } from '@/components/ui/Card';
+import { Card, CardRow } from '@/components/ui/Card';
 import { Pill } from '@/components/ui/Pill';
 import { Check } from '@/components/ui/Check';
 import { Counter } from '@/components/ui/Counter';
@@ -65,7 +65,11 @@ export function StepLedger() {
             ))}
           </div>
 
-          <p className="mt-4 border-t border-border pt-3.5 font-mono text-[10px] uppercase tracking-eyebrow text-dim">
+          <div className="mt-4 border-t border-border pt-1.5">
+            <CardRow label="Report ref" value={esgTotals.reference} mono accent />
+          </div>
+
+          <p className="mt-3 font-mono text-[10px] uppercase tracking-eyebrow text-dim">
             Compiled {esgTotals.compiledAt}
           </p>
         </Card>

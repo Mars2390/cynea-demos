@@ -1,6 +1,6 @@
 'use client';
 
-import { timing } from './timing';
+import { scrollDurationFor, timing } from './timing';
 
 /**
  * Guided scrolling for the demo engine.
@@ -151,10 +151,7 @@ export function tweenScrollTo(
     return 0;
   }
 
-  const duration = Math.min(
-    timing.scrollMaxMs,
-    Math.max(timing.scrollMinMs, distance * timing.scrollMsPerPx),
-  );
+  const duration = scrollDurationFor(distance);
 
   // The visitor's own input always wins. We listen for input events rather than
   // 'scroll', because our own scrollTo would otherwise cancel the tween on its

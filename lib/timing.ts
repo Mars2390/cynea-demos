@@ -56,10 +56,20 @@ export const timing = {
 
   /* --- guided scrolling --- */
 
-  /** Scroll tween bounds. Duration scales with distance between these. */
-  scrollMinMs: 320,
-  scrollMaxMs: 720,
-  scrollMsPerPx: 0.6,
+  /**
+   * Scroll duration by distance, in bands rather than a linear rate.
+   *
+   * A linear ms-per-pixel rate with a ceiling gave every long journey the same
+   * duration, so the further the page had to travel the faster it went — on a
+   * phone the 1,200px+ hops inside the Diligence step ran at ~1,800 px/s,
+   * nearly three screens a second. Banding keeps short corrections snappy and
+   * gives long journeys the time they need to stay legible.
+   */
+  scrollBands: [
+    { maxPx: 500, ms: 340 },
+    { maxPx: 1000, ms: 620 },
+    { maxPx: Number.POSITIVE_INFINITY, ms: 1000 },
+  ],
 
   /** Breathing room kept between a spotlit target and the safe-area edges. */
   scrollPadPx: 16,
@@ -84,6 +94,11 @@ export const timing = {
   scrollWatchMs: 6000,
   scrollMaxCorrections: 4,
 } as const;
+
+/** Scroll tween duration for a given distance, from the bands above. */
+export const scrollDurationFor = (distancePx: number) =>
+  timing.scrollBands.find((b) => distancePx <= b.maxPx)?.ms ??
+  timing.scrollBands[timing.scrollBands.length - 1].ms;
 
 /** Word-stagger delay helper for the guide bubble. */
 export const wordDelay = (index: number) =>
