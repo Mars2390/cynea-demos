@@ -14,6 +14,14 @@ const demos: DemoCard[] = [
     live: true,
   },
   {
+    slug: 'finance',
+    name: 'Finance',
+    role: 'Six agents · one workflow',
+    blurb:
+      'The numbers, handled, from bookkeeping to board pack: invoice capture, reconciliation, expense audit, anomaly detection, cash forecasting and board reporting.',
+    live: true,
+  },
+  {
     slug: 'scout',
     name: 'Scout',
     role: 'Prospecting Agent',

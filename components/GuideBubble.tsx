@@ -4,7 +4,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { GuideCue } from '@/lib/types';
 import { cueHoldMs, timing, wordDelay } from '@/lib/timing';
 import { useReducedMotion } from '@/lib/hooks';
-import { CHROME_BUBBLE, cancelScroll, guideTargetIntoView } from '@/lib/scroll';
+import {
+  CHROME_BUBBLE,
+  CHROME_TOP,
+  cancelScroll,
+  guideTargetIntoView,
+} from '@/lib/scroll';
 import { AnnotationChip } from './ui/AnnotationChip';
 
 interface Rect {
@@ -50,6 +55,8 @@ export function GuideBubble({
   const [index, setIndex] = useState(0);
   const [visible, setVisible] = useState(false);
   const [rect, setRect] = useState<Rect | null>(null);
+  /** Bottom edge of the sticky strip, so the annotation never tucks under it. */
+  const [stripBottom, setStripBottom] = useState(0);
   /** True only while a guided scroll is in flight. */
   const [scrolling, setScrolling] = useState(false);
   /**
@@ -190,6 +197,14 @@ export function GuideBubble({
           height: r.height + SPOT_PAD * 2,
         });
 
+        // A target parked directly under the strip would put the chip behind
+        // it; measured here so it also holds while the strip is scrolling in.
+        const strip = document.querySelector<HTMLElement>(
+          `[data-chrome="${CHROME_TOP}"]`,
+        );
+        const sb = strip ? Math.max(0, strip.getBoundingClientRect().bottom) : 0;
+        setStripBottom((prev) => (prev === sb ? prev : sb));
+
         // Yield only while the target is genuinely behind the bubble.
         const b = bubbleRef.current?.getBoundingClientRect();
         const overlapping = b
@@ -245,7 +260,10 @@ export function GuideBubble({
       {rect && cue.annotation && (
         <AnnotationChip
           text={cue.annotation}
-          top={Math.max(rect.top - 30, 8)}
+          // Pinned across the spotlight's top edge, like a tag on the frame:
+          // clear of whatever sits directly above a stacked target, and never
+          // tucked under the strip when the target is parked beneath it.
+          top={Math.max(rect.top - 12, stripBottom + 4, 8)}
           left={rect.left + 4}
           glued={scrolling}
         />

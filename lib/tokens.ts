@@ -51,6 +51,24 @@ export const ch = {
   warning: '232 129 74',
 } as const;
 
+/**
+ * "Tape" — the Finance suite's fork. Applied by [data-suite='finance'] in
+ * globals.css; these mirrors exist for canvas and per-step mesh hues only.
+ */
+export const tape = {
+  background: '#05080F',
+  accent: '#22D3EE',
+  accentSecondary: '#A78BFA',
+  success: '#4ADE80',
+  warning: '#FBBF24',
+  ch: {
+    accent: '34 211 238',
+    accentSecondary: '167 139 250',
+    success: '74 222 128',
+    warning: '251 191 36',
+  },
+} as const;
+
 /** `alpha(ch.accent, 0.3)` → "rgb(216 180 92 / 0.3)". Valid in CSS and canvas. */
 export const alpha = (channels: string, a: number) =>
   `rgb(${channels} / ${a})`;
@@ -86,6 +104,16 @@ export const meshByStep: Record<string, { a: string; b: string }> = {
   carbon: { a: ch.success, b: ch.accent },
   ledger: { a: ch.accentSecondary, b: ch.accent },
   registrar: { a: ch.accent, b: ch.accentSecondary },
+
+  /* Finance suite (Tape): cyan through the ledger work, violet where the
+     agent is looking ahead or watching, lime once the pack is signed off. */
+  capture: { a: tape.ch.accent, b: tape.ch.accentSecondary },
+  reconcile: { a: tape.ch.accent, b: tape.ch.success },
+  examine: { a: tape.ch.accentSecondary, b: tape.ch.accent },
+  anomaly: { a: tape.ch.accentSecondary, b: tape.ch.warning },
+  forecast: { a: tape.ch.accent, b: tape.ch.accentSecondary },
+  reporter: { a: tape.ch.success, b: tape.ch.accent },
+  'finance-ready': { a: tape.ch.accent, b: tape.ch.accentSecondary },
 
   /* Diligence, standalone. */
   consignment: { a: ch.accentSecondary, b: ch.accent },

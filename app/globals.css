@@ -60,6 +60,40 @@
   --sheen-y: 50%;
 }
 
+/* ==========================================================================
+   PALETTE FORK — "Tape", scoped to the Finance suite
+   Electric cyan primary, violet secondary, lime reserved for pass states.
+
+   This is a fork, not a replacement: Tribunal stays the default and the hub
+   and Compliance never see these values. Because every colour is declared as
+   a channel triplet and every consumer composes through rgb(var(--x-ch) / a),
+   re-pointing the triplets under one attribute is the entire override — no
+   component knows which suite it is in.
+
+   Measured contrast vs #05080F: foreground 18.15 · accent 11.09 · violet 7.36
+   · lime 11.50 · amber 12.00 · muted 6.60 · dim 5.29 · #06111A on cyan 10.54.
+   ========================================================================== */
+
+[data-suite='finance'] {
+  --background-ch: 5 8 15;
+  --card-ch: 12 17 28;
+  --card-hover-ch: 18 24 40;
+  --border-ch: 26 33 51;
+  --border-hi-ch: 40 49 71;
+  --foreground-ch: 240 244 250;
+  --muted-ch: 138 148 172;
+  --dim-ch: 121 131 156;
+  --accent-ch: 34 211 238;
+  --accent-hover-ch: 103 232 249;
+  --accent-secondary-ch: 167 139 250;
+  --success-ch: 74 222 128;
+  --warning-ch: 251 191 36;
+  --error-ch: 248 113 113;
+  --on-accent-ch: 6 17 26;
+
+  --grid-line: rgb(var(--foreground-ch) / 0.04);
+}
+
 * {
   border-color: var(--border);
 }
