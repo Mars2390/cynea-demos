@@ -1,14 +1,16 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { DemoShell } from '@/components/DemoShell';
 import { GuideBubble } from '@/components/GuideBubble';
 import { StepFooter } from '@/components/StepFooter';
+import { MeshBackground } from '@/components/MeshBackground';
 import { ParticleBackground } from '@/components/ParticleBackground';
 import { Button } from '@/components/ui/Button';
 import { Pill } from '@/components/ui/Pill';
 import { timing } from '@/lib/timing';
+import { useIntroSettled, useKeyboard } from '@/lib/hooks';
 import { agent, readyStep, steps } from '@/demos/diligence/config';
 import { guide } from '@/demos/diligence/guide';
 import {
@@ -31,21 +33,30 @@ function stepFromPathname(pathname: string): string {
 }
 
 /**
- * The step lives in the URL path, and the server already rendered the correct
- * step via `initialStep` — so there is no switch-on-hydration.
+ * The step lives in the URL path and the server already rendered the correct
+ * step via `initialStep`, so there is no switch-on-hydration.
  *
- * In-demo navigation uses history.pushState rather than the Next router so
- * this component never unmounts. That keeps the Guide / Auto-play toggles and
+ * In-demo navigation uses history.pushState rather than the Next router so this
+ * component never unmounts. That keeps the Guide / Auto-play toggles and the
  * autoplay timer alive across steps, while each URL still resolves to its own
  * statically prerendered page on a fresh load or refresh.
+ *
+ * Flow is hybrid: each step plays its own intro (skeletons → counters → rings →
+ * log lines) unattended, then hands over — the Next button starts pulsing and
+ * waits for a click. Auto-play additionally advances the step once the intro
+ * has settled plus a dwell.
  */
 export function DiligenceDemo({ initialStep }: { initialStep: string }) {
   const [stepId, setStepId] = useState(initialStep);
   const [guideOn, setGuideOn] = useState(true);
-  const [autoplayOn, setAutoplayOn] = useState(false);
+  const [autoplayOn, setAutoplayOn] = useState(true);
   const [firedEvents, setFiredEvents] = useState<string[]>([
     `step:${initialStep}`,
   ]);
+  /** Bumped by Replay to force a full remount of the step subtree. */
+  const [runId, setRunId] = useState(0);
+
+  const advanceCueRef = useRef<(() => void) | null>(null);
 
   // Follow browser back/forward.
   useEffect(() => {
@@ -56,12 +67,12 @@ export function DiligenceDemo({ initialStep }: { initialStep: string }) {
 
   /**
    * Back-compat for the old query-string model: /diligence?step=assess →
-   * /diligence/assess. Only applies on the bare /diligence path, so an
-   * explicit path segment always wins. replaceState, not pushState, so Back
-   * does not bounce the visitor between the two URL forms.
+   * /diligence/assess. Only applies on the bare /diligence path, so an explicit
+   * path segment always wins. replaceState, not pushState, so Back does not
+   * bounce the visitor between the two URL forms.
    *
-   * This runs on the client by necessity — reading searchParams on the server
-   * would opt the route out of static prerendering.
+   * Client-side by necessity: reading searchParams on the server would opt the
+   * route out of static prerendering.
    */
   useEffect(() => {
     if (window.location.pathname.replace(/\/+$/, '') !== BASE) return;
@@ -97,21 +108,55 @@ export function DiligenceDemo({ initialStep }: { initialStep: string }) {
     goto(i === steps.length - 1 ? READY : steps[i + 1].id);
   }, [stepId, goto]);
 
-  // Autoplay advances one step per dwell until the ready screen.
-  useEffect(() => {
-    if (!autoplayOn || isReady) return;
-    const t = setTimeout(next, timing.autoplayStepMs);
-    return () => clearTimeout(t);
-  }, [autoplayOn, isReady, next, stepId]);
+  const prev = useCallback(() => {
+    if (isReady) {
+      goto(steps[steps.length - 1].id);
+      return;
+    }
+    const i = steps.findIndex((s) => s.id === stepId);
+    if (i > 0) goto(steps[i - 1].id);
+  }, [stepId, isReady, goto]);
 
+  /** Full reset: clears fired cues and remounts the step subtree. */
   const replay = useCallback(() => {
-    setFiredEvents([]);
+    setFiredEvents([`step:${steps[0].id}`]);
+    setRunId((n) => n + 1);
+    setAutoplayOn(true);
+    setGuideOn(true);
     goto(steps[0].id);
   }, [goto]);
+
+  // True once this step's intro animations have settled.
+  const settled = useIntroSettled(`${stepId}-${runId}`);
+
+  // Auto-play advances only after the intro has settled, so a step is never
+  // cut off mid-reveal.
+  useEffect(() => {
+    if (!autoplayOn || isReady || !settled) return;
+    const t = setTimeout(next, timing.autoplayStepMs);
+    return () => clearTimeout(t);
+  }, [autoplayOn, isReady, settled, next, stepId, runId]);
+
+  // Arrows move between steps; Space advances a guide cue; Esc opens replay.
+  useKeyboard({
+    ArrowRight: () => {
+      if (!isReady) next();
+    },
+    ArrowLeft: prev,
+    ' ': () => advanceCueRef.current?.(),
+    Escape: () => {
+      if (isReady) replay();
+      else goto(READY);
+    },
+  });
+
+  /** 0–1 across the whole flow, including the ready screen. */
+  const progress = isReady ? 1 : (activeIndex + 1) / (steps.length + 1);
 
   if (isReady) {
     return (
       <>
+        <MeshBackground stepId={READY} />
         <ParticleBackground />
         <ReadyScreen onReplay={replay} />
       </>
@@ -127,6 +172,8 @@ export function DiligenceDemo({ initialStep }: { initialStep: string }) {
         tagline={agent.role}
         steps={steps}
         activeIndex={activeIndex}
+        stepId={stepId}
+        progress={progress}
         onSelectStep={goto}
         guideOn={guideOn}
         onToggleGuide={() => setGuideOn((v) => !v)}
@@ -134,7 +181,9 @@ export function DiligenceDemo({ initialStep }: { initialStep: string }) {
         onToggleAutoplay={() => setAutoplayOn((v) => !v)}
         onSkip={() => goto(READY)}
       >
-        <div key={stepId} className="demo-step-in">
+        {/* runId in the key makes Replay remount the step, so every counter,
+            ring and skeleton starts from zero again. */}
+        <div key={`${stepId}-${runId}`} className="demo-step-in">
           {stepId === 'consignment' && <StepConsignment />}
           {stepId === 'collect' && <StepCollect />}
           {stepId === 'assess' && <StepAssess />}
@@ -145,15 +194,18 @@ export function DiligenceDemo({ initialStep }: { initialStep: string }) {
           why={step.why}
           next={step.next}
           onNext={next}
-          stepId={stepId}
+          stepId={`${stepId}-${runId}`}
+          attention={settled}
+          guideOn={guideOn}
         />
       </DemoShell>
 
       <GuideBubble
         cues={guide[stepId] ?? []}
-        stepId={stepId}
+        stepId={`${stepId}-${runId}`}
         enabled={guideOn}
         firedEvents={firedEvents}
+        onAdvanceRef={advanceCueRef}
       />
     </>
   );
@@ -165,7 +217,10 @@ function ReadyScreen({ onReplay }: { onReplay: () => void }) {
   return (
     <div className="demo-stage relative flex min-h-screen flex-col items-center justify-center px-5 py-24 text-center">
       <div className="demo-rise relative">
-        <span aria-hidden className="relative mx-auto mb-8 flex h-14 w-14 items-center justify-center">
+        <span
+          aria-hidden
+          className="relative mx-auto mb-8 flex h-14 w-14 items-center justify-center"
+        >
           <span className="demo-orb-ring absolute h-14 w-14 rounded-full bg-accent/25" />
           <span className="demo-orb flex h-10 w-10 items-center justify-center rounded-full border border-accent/50 bg-accent/15 shadow-glow-accent">
             <span className="h-2.5 w-2.5 rounded-full bg-accent" />
@@ -176,12 +231,14 @@ function ReadyScreen({ onReplay }: { onReplay: () => void }) {
           Demo complete
         </Pill>
 
-        <h1 className="mx-auto max-w-2xl font-display text-[36px] font-semibold leading-[1.06] tracking-display text-foreground sm:text-[48px] lg:text-display">
+        <h1 className="mx-auto max-w-2xl font-display text-[30px] font-semibold leading-[1.08] tracking-display text-foreground xs:text-[36px] sm:text-[48px] lg:text-display">
           {readyStep.heading}
         </h1>
 
         <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
-          <Button href={readyStep.bookHref}>{readyStep.bookLabel}</Button>
+          <Button href={readyStep.bookHref} pulse>
+            {readyStep.bookLabel}
+          </Button>
           <Button variant="ghost" onClick={onReplay}>
             {readyStep.replayLabel}
           </Button>

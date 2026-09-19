@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Syne, DM_Sans, JetBrains_Mono } from 'next/font/google';
+import { colors } from '@/lib/tokens';
 import './globals.css';
 
 const syne = Syne({
@@ -30,7 +31,9 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  themeColor: '#050505',
+  // Browser chrome reads this before CSS loads, so it must be a literal
+  // value — sourced from the token file to keep one source of truth.
+  themeColor: colors.background,
 };
 
 export default function RootLayout({

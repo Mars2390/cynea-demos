@@ -1,9 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Card, CardRow } from '@/components/ui/Card';
+import { useEffect, useState, type ReactNode } from 'react';
+import { Card, CardRow, CardSection } from '@/components/ui/Card';
 import { Pill, toneForStatus } from '@/components/ui/Pill';
 import { Button } from '@/components/ui/Button';
+import { Counter, CounterRatio } from '@/components/ui/Counter';
+import { ProgressRing } from '@/components/ui/ProgressRing';
+import { Reveal, Skeleton, SkeletonRows } from '@/components/ui/Skeleton';
+import { useLoaded } from '@/lib/hooks';
 import { timing } from '@/lib/timing';
 import {
   collection,
@@ -15,33 +19,56 @@ import {
   suppliers,
 } from '@/demos/diligence/fixtures';
 
+/**
+ * Net weight is stored as a display string in the fixtures ("18,000 kg"). We
+ * derive the numeric for the counter rather than adding a parallel field, so
+ * the fixture stays the single source of truth for what is shown.
+ */
+const weightKg = Number(consignment.weight.replace(/[^\d]/g, ''));
+const weightUnit = consignment.weight.replace(/[\d,]/g, '').trim();
+
 /* ========================================================================
    STEP 1 — CONSIGNMENT
    ======================================================================== */
 
 export function StepConsignment() {
+  const loaded = useLoaded(true);
+
   return (
-    <div className="grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
-      <Card guide="consignment-card" glow delay={80}>
-        <div className="mb-4 flex items-center justify-between gap-3">
+    <div className="grid gap-4 sm:gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+      <Card guide="consignment-card" glass glow delay={60}>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <span className="font-mono text-[10px] uppercase tracking-eyebrow text-muted">
             Consignment intake
           </span>
           <Pill tone="muted">{consignment.loggedAt}</Pill>
         </div>
 
-        <div data-guide="commodity-row">
-          <CardRow label="Commodity" value={consignment.commodity} />
-        </div>
-        <CardRow label="HS code" value={consignment.hsCode} mono />
-        <CardRow label="Origin" value={consignment.origin} />
-        <CardRow label="Destination" value={consignment.destination} />
-        <CardRow label="Net weight" value={consignment.weight} mono />
-        <CardRow label="Importer" value={consignment.importer} />
+        <Reveal run skeleton={<SkeletonRows rows={6} />}>
+          <div data-guide="commodity-row">
+            <CardRow label="Commodity" value={consignment.commodity} />
+          </div>
+          <CardRow label="HS code" value={consignment.hsCode} mono />
+          <CardRow label="Origin" value={consignment.origin} />
+          <CardRow label="Destination" value={consignment.destination} />
+          <CardRow
+            label="Net weight"
+            value={
+              <Counter
+                to={weightKg}
+                run={loaded}
+                group
+                suffix={` ${weightUnit}`}
+              />
+            }
+            mono
+          />
+          <CardRow label="Importer" value={consignment.importer} />
+        </Reveal>
 
         <div
           data-guide="eudr-status"
-          className="mt-4 flex items-center justify-between gap-3 rounded-[14px] border border-accent/35 bg-accent/[0.07] px-4 py-3"
+          className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-[14px] border border-accent/35 bg-accent/[0.07] px-4 py-3"
         >
           <span className="font-mono text-[10px] uppercase tracking-eyebrow text-muted">
             EUDR status
@@ -50,21 +77,32 @@ export function StepConsignment() {
         </div>
       </Card>
 
-      <div className="flex flex-col gap-5">
-        <Card delay={200}>
-          <span className="mb-3 block font-mono text-[10px] uppercase tracking-eyebrow text-muted">
-            Scope test
-          </span>
-          <ScopeLine label="Annex I commodity" value="Coffee" pass />
-          <ScopeLine label="Placed on EU market" value="Yes — Hamburg" pass />
-          <ScopeLine label="Operator obligation" value="Applies" pass />
+      <div className="flex flex-col gap-4 sm:gap-5">
+        <Card delay={180}>
+          <div className="mb-4 flex items-center justify-between gap-4">
+            <span className="font-mono text-[10px] uppercase tracking-eyebrow text-muted">
+              Scope test
+            </span>
+            <ProgressRing
+              percent={100}
+              run={loaded}
+              size={62}
+              stroke={5}
+              label="3/3"
+              sublabel="met"
+              delayMs={120}
+            />
+          </div>
+          <ScopeLine label="Annex I commodity" value="Coffee" />
+          <ScopeLine label="Placed on EU market" value="Yes — Hamburg" />
+          <ScopeLine label="Operator obligation" value="Applies" />
           <p className="mt-4 text-[13px] leading-relaxed text-muted">
             Three conditions decide whether EUDR applies. All three are read
             from the consignment record — no manual classification step.
           </p>
         </Card>
 
-        <Card delay={320}>
+        <Card delay={280}>
           <span className="mb-2 block font-mono text-[10px] uppercase tracking-eyebrow text-muted">
             Next action
           </span>
@@ -77,21 +115,13 @@ export function StepConsignment() {
   );
 }
 
-function ScopeLine({
-  label,
-  value,
-  pass,
-}: {
-  label: string;
-  value: string;
-  pass: boolean;
-}) {
+function ScopeLine({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between gap-4 border-b border-border/70 py-2.5 last:border-0">
       <span className="text-[13px] text-muted">{label}</span>
       <span className="flex items-center gap-2">
-        <span className="text-[13px] text-foreground">{value}</span>
-        {pass && <Check />}
+        <span className="text-right text-[13px] text-foreground">{value}</span>
+        <Check />
       </span>
     </div>
   );
@@ -102,6 +132,7 @@ function ScopeLine({
    ======================================================================== */
 
 export function StepCollect() {
+  const loaded = useLoaded(true);
   const [lines, setLines] = useState(0);
   const done = lines >= scanLog.length;
 
@@ -117,61 +148,67 @@ export function StepCollect() {
     return () => clearInterval(id);
   }, []);
 
+  const gpsPct = Math.round(
+    (collection.gpsReceived / collection.gpsTotal) * 100,
+  );
+
   return (
-    <div className="grid gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
-      <div className="flex flex-col gap-5">
-        <div className="grid gap-4 sm:grid-cols-3">
-          <Stat
-            guide="plots-stat"
-            label="Plots submitted"
-            value={String(collection.plotsSubmitted)}
-            delay={60}
-          />
-          <Stat
-            guide="gps-stat"
-            label="GPS received"
-            value={`${collection.gpsReceived}/${collection.gpsTotal}`}
-            accent
-            delay={140}
-          />
-          <Stat
-            guide="hectares-stat"
-            label="Total area"
-            value={`${collection.totalHectares} ha`}
-            delay={220}
-          />
+    <div className="grid gap-4 sm:gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+      <div className="flex flex-col gap-4 sm:gap-5">
+        <div className="grid gap-3 sm:grid-cols-3 sm:gap-4">
+          <Stat guide="plots-stat" label="Plots submitted" delay={40}>
+            <Counter to={collection.plotsSubmitted} run={loaded} />
+          </Stat>
+          <Stat guide="gps-stat" label="GPS received" accent delay={110}>
+            <CounterRatio
+              to={collection.gpsReceived}
+              total={collection.gpsTotal}
+              run={loaded}
+            />
+          </Stat>
+          <Stat guide="hectares-stat" label="Total area" delay={180}>
+            <Counter
+              to={collection.totalHectares}
+              run={loaded}
+              decimals={1}
+              suffix=" ha"
+            />
+          </Stat>
         </div>
 
-        {/* Static map panel with plot pins. */}
-        <Card guide="plot-map" delay={300}>
-          <div className="mb-3 flex items-center justify-between gap-3">
+        {/* Static map panel with pulsing plot pins. */}
+        <Card guide="plot-map" glass delay={240}>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <span className="font-mono text-[10px] uppercase tracking-eyebrow text-muted">
               Plot geolocation · {collection.plotsSubmitted} plots
             </span>
-            <Pill tone="accent" dot>
+            <Pill tone="secondary" dot>
               {consignment.origin}
             </Pill>
           </div>
 
-          <div className="demo-grid relative h-[268px] overflow-hidden rounded-[14px] border border-border bg-[#080d11]">
+          <div className="demo-grid relative h-[230px] overflow-hidden rounded-[14px] border border-border bg-background/70 sm:h-[268px]">
             <svg
               viewBox="0 0 100 100"
               preserveAspectRatio="none"
               className="absolute inset-0 h-full w-full"
               aria-hidden
             >
-              {/* Stylised county outline + river. */}
+              {/* Stylised county outline + river. Colours come from tokens via
+                  style, because SVG presentation attributes cannot read var(). */}
               <path
                 d="M8 22 L30 10 L58 14 L82 24 L92 46 L80 74 L52 88 L22 80 L6 56 Z"
-                fill="rgba(0,212,255,0.045)"
-                stroke="rgba(0,212,255,0.3)"
                 strokeWidth="0.5"
+                style={{
+                  fill: 'rgb(var(--success-ch) / 0.05)',
+                  stroke: 'rgb(var(--success-ch) / 0.3)',
+                }}
               />
               <path
                 d="M14 34 Q38 46 50 40 T88 52"
                 fill="none"
-                stroke="rgba(0,212,255,0.16)"
                 strokeWidth="0.7"
+                style={{ stroke: 'rgb(var(--accent-secondary-ch) / 0.28)' }}
               />
             </svg>
 
@@ -182,13 +219,17 @@ export function StepCollect() {
                 style={{
                   left: `${plot.x}%`,
                   top: `${plot.y}%`,
-                  animationDelay: `${360 + i * 55}ms`,
+                  animationDelay: `${320 + i * 55}ms`,
                 }}
                 title={`${plot.id} · ${plot.hectares} ha`}
               >
                 <span className="relative flex h-2.5 w-2.5 items-center justify-center">
-                  <span className="demo-orb-ring absolute h-2.5 w-2.5 rounded-full bg-accent/50" />
-                  <span className="h-1.5 w-1.5 rounded-full bg-accent shadow-glow-accent" />
+                  {/* Staggered ping so the field ripples rather than flashing. */}
+                  <span
+                    className="demo-ping absolute h-2.5 w-2.5 rounded-full bg-success/55"
+                    style={{ animationDelay: `${i * 170}ms` }}
+                  />
+                  <span className="h-1.5 w-1.5 rounded-full bg-success shadow-glow-success" />
                 </span>
               </span>
             ))}
@@ -199,14 +240,15 @@ export function StepCollect() {
           </div>
 
           <p className="mt-3 font-mono text-[10px] uppercase tracking-eyebrow text-dim">
-            Showing {plots.length} of {collection.plotsSubmitted} pins for legibility
+            Showing {plots.length} of {collection.plotsSubmitted} pins for
+            legibility
           </p>
         </Card>
       </div>
 
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-4 sm:gap-5">
         {/* Collection log */}
-        <Card delay={120}>
+        <Card delay={100}>
           <span className="mb-3 block font-mono text-[10px] uppercase tracking-eyebrow text-muted">
             Collection log
           </span>
@@ -219,8 +261,10 @@ export function StepCollect() {
                 key={line}
                 className="demo-rise flex gap-2 font-mono text-[11px] leading-relaxed text-muted"
               >
-                <span className="text-accent">›</span>
-                <span className={i === scanLog.length - 1 ? 'text-foreground' : ''}>
+                <span className="shrink-0 text-accent">›</span>
+                <span
+                  className={i === scanLog.length - 1 ? 'text-foreground' : ''}
+                >
                   {line}
                 </span>
               </li>
@@ -228,18 +272,43 @@ export function StepCollect() {
           </ol>
         </Card>
 
+        {/* Completeness ring */}
+        <Card delay={170}>
+          <div className="flex items-center gap-4">
+            <ProgressRing
+              percent={gpsPct}
+              run={loaded}
+              size={78}
+              tone="success"
+              sublabel="geodata"
+              delayMs={200}
+            />
+            <div className="min-w-0">
+              <span className="block font-mono text-[10px] uppercase tracking-eyebrow text-muted">
+                Geolocation completeness
+              </span>
+              <p className="mt-1.5 text-[13px] leading-relaxed text-muted">
+                Every plot returned a valid GPS polygon. Anything short of 100%
+                blocks the statement.
+              </p>
+            </div>
+          </div>
+        </Card>
+
         {/* Suppliers */}
-        <Card delay={220}>
+        <Card delay={240}>
           <span className="mb-3 block font-mono text-[10px] uppercase tracking-eyebrow text-muted">
             Supplier groups
           </span>
           {suppliers.map((s) => (
             <div
               key={s.name}
-              className="flex items-center justify-between gap-4 border-b border-border/70 py-2.5 last:border-0"
+              className="flex items-center justify-between gap-3 border-b border-border/70 py-2.5 last:border-0"
             >
-              <span className="text-[13px] text-foreground">{s.name}</span>
-              <span className="flex items-center gap-2">
+              <span className="min-w-0 text-[13px] text-foreground">
+                {s.name}
+              </span>
+              <span className="flex shrink-0 items-center gap-2">
                 <span className="font-mono text-[11px] text-muted">
                   {s.plots} plots
                 </span>
@@ -250,21 +319,23 @@ export function StepCollect() {
         </Card>
 
         {/* Deforestation + risk */}
-        <Card guide="deforestation-check" delay={320} glow>
+        <Card guide="deforestation-check" delay={310} glow>
           <span className="mb-3 block font-mono text-[10px] uppercase tracking-eyebrow text-muted">
             Deforestation check
           </span>
           <div className="flex items-start gap-2.5">
-            <Check />
+            <span className="mt-0.5">
+              <Check />
+            </span>
             <p className="text-[14px] leading-relaxed text-foreground">
               {collection.deforestationCheck}
             </p>
           </div>
-          <div className="mt-4 flex items-center justify-between gap-3 border-t border-border pt-3.5">
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3.5">
             <span className="font-mono text-[10px] uppercase tracking-eyebrow text-muted">
               Risk classification
             </span>
-            <Pill tone="accent" dot>
+            <Pill tone="secondary" dot>
               {collection.riskClassification}
             </Pill>
           </div>
@@ -276,13 +347,13 @@ export function StepCollect() {
 
 function Stat({
   label,
-  value,
+  children,
   accent = false,
   delay = 0,
   guide,
 }: {
   label: string;
-  value: string;
+  children: ReactNode;
   accent?: boolean;
   delay?: number;
   guide?: string;
@@ -291,17 +362,17 @@ function Stat({
     <div
       data-guide={guide}
       style={{ animationDelay: `${delay}ms` }}
-      className="demo-rise rounded-card border border-border bg-card px-4 py-3.5"
+      className="demo-rise demo-sheen rounded-card border border-border bg-card px-4 py-3.5"
     >
       <span className="block font-mono text-[9px] uppercase tracking-eyebrow text-muted">
         {label}
       </span>
       <span
-        className={`mt-1.5 block font-display text-[26px] font-semibold tracking-[-0.6px] ${
+        className={`mt-1.5 block font-display text-[23px] font-semibold tracking-[-0.6px] sm:text-[26px] ${
           accent ? 'text-accent' : 'text-foreground'
         }`}
       >
-        {value}
+        {children}
       </span>
     </div>
   );
@@ -312,15 +383,19 @@ function Stat({
    ======================================================================== */
 
 export function StepAssess() {
+  const loaded = useLoaded(true);
+  const passed = riskChecks.filter((c) => c.status !== 'fail').length;
+
   return (
-    <div className="grid gap-5 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
-      <Card guide="risk-checklist" glow delay={80}>
-        <div className="mb-4 flex items-center justify-between gap-3">
+    <div className="grid gap-4 sm:gap-5 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
+      <Card guide="risk-checklist" glass glow delay={60}>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <span className="font-mono text-[10px] uppercase tracking-eyebrow text-muted">
             Five-point risk assessment
           </span>
           <Pill tone="success" dot>
-            5 of 5 cleared
+            <Counter to={passed} run={loaded} />
+            &nbsp;of {riskChecks.length} cleared
           </Pill>
         </div>
 
@@ -329,16 +404,16 @@ export function StepAssess() {
             <li
               key={check.label}
               data-guide={`check-${i + 1}`}
-              style={{ animationDelay: `${160 + i * 130}ms` }}
-              className="demo-rise flex items-start gap-3.5 rounded-[12px] border border-transparent px-3 py-3 transition-colors duration-300 hover:border-border hover:bg-card-hover"
+              style={{ animationDelay: `${140 + i * 130}ms` }}
+              className="demo-rise flex items-start gap-3 rounded-[12px] border border-transparent px-2.5 py-3 transition-colors duration-300 hover:border-border hover:bg-card-hover sm:gap-3.5 sm:px-3"
             >
-              <span className="mt-0.5 font-mono text-[11px] text-dim">
+              <span className="mt-0.5 shrink-0 font-mono text-[11px] text-dim">
                 {String(i + 1).padStart(2, '0')}
               </span>
 
               <span
                 className="demo-pop mt-0.5 shrink-0"
-                style={{ animationDelay: `${420 + i * 130}ms` }}
+                style={{ animationDelay: `${400 + i * 130}ms` }}
               >
                 <Check />
               </span>
@@ -352,32 +427,62 @@ export function StepAssess() {
                 </span>
               </span>
 
-              <Pill tone={toneForStatus(check.status)}>{check.result}</Pill>
+              <span className="shrink-0">
+                <Pill tone={toneForStatus(check.status)}>{check.result}</Pill>
+              </span>
             </li>
           ))}
         </ol>
       </Card>
 
-      <div className="flex flex-col gap-5">
-        <Card guide="risk-summary" delay={240}>
-          <span className="mb-3 block font-mono text-[10px] uppercase tracking-eyebrow text-muted">
+      <div className="flex flex-col gap-4 sm:gap-5">
+        <Card guide="risk-summary" delay={200}>
+          <span className="mb-4 block font-mono text-[10px] uppercase tracking-eyebrow text-muted">
             Assessment outcome
           </span>
-          <span className="block font-display text-[40px] font-semibold leading-none tracking-display text-success">
-            Low
-          </span>
-          <p className="mt-3 text-[13px] leading-relaxed text-muted">
-            Overall risk classification for this consignment. Negligible risk
-            permits the operator to proceed with the due diligence statement.
+
+          <div className="flex items-center gap-4">
+            <ProgressRing
+              percent={100}
+              run={loaded}
+              size={86}
+              tone="success"
+              label={`${passed}/${riskChecks.length}`}
+              sublabel="cleared"
+              delayMs={160}
+            />
+            <div className="min-w-0">
+              <span className="block font-display text-[32px] font-semibold leading-none tracking-display text-success">
+                Low
+              </span>
+              <span className="mt-1.5 block font-mono text-[9px] uppercase tracking-eyebrow text-dim">
+                overall risk
+              </span>
+            </div>
+          </div>
+
+          <p className="mt-4 text-[13px] leading-relaxed text-muted">
+            Negligible risk permits the operator to proceed with the due
+            diligence statement.
           </p>
+
           <div className="mt-4 border-t border-border pt-3.5">
-            <CardRow label="Checks run" value="5" mono />
-            <CardRow label="Checks passed" value="5" mono accent />
+            <CardRow
+              label="Checks run"
+              value={<Counter to={riskChecks.length} run={loaded} />}
+              mono
+            />
+            <CardRow
+              label="Checks passed"
+              value={<Counter to={passed} run={loaded} delayMs={120} />}
+              mono
+              accent
+            />
             <CardRow label="Blocking issues" value="0" mono />
           </div>
         </Card>
 
-        <Card delay={340}>
+        <Card delay={300}>
           <span className="mb-2 block font-mono text-[10px] uppercase tracking-eyebrow text-muted">
             Audit trail
           </span>
@@ -396,11 +501,19 @@ export function StepAssess() {
    ======================================================================== */
 
 export function StepStatement() {
+  const loaded = useLoaded(true);
+
   return (
-    <div className="grid gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+    <div className="grid gap-4 sm:gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
       {/* Statement preview, styled as a document. */}
-      <Card guide="statement-card" glow delay={80} className="!p-0 overflow-hidden">
-        <div className="flex items-center justify-between gap-3 border-b border-border bg-[#0a0a0a] px-5 py-3.5">
+      <Card
+        guide="statement-card"
+        glass
+        glow
+        delay={60}
+        className="!p-0 overflow-hidden"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3.5 sm:px-5">
           <span className="font-mono text-[10px] uppercase tracking-eyebrow text-muted">
             Due diligence statement · preview
           </span>
@@ -409,49 +522,76 @@ export function StepStatement() {
           </Pill>
         </div>
 
-        <div className="px-5 py-5">
-          <div data-guide="statement-reference" className="mb-5">
-            <span className="block font-mono text-[9px] uppercase tracking-eyebrow text-muted">
-              Reference number
-            </span>
-            <span className="mt-1 block font-mono text-[19px] text-accent">
-              {statement.reference}
-            </span>
-          </div>
+        <div className="relative px-4 py-5 sm:px-5">
+          {/* Ambient seal behind the reference number. */}
+          <span
+            aria-hidden
+            className="demo-seal pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full border border-accent/25"
+            style={{
+              background:
+                'conic-gradient(from 0deg, rgb(var(--accent-ch) / 0.14), transparent 55%)',
+            }}
+          />
 
-          <Section title="Operator">
-            <CardRow label="Submitted by" value={statement.submittedBy} />
-            <CardRow label="EORI number" value={statement.eoriNumber} mono />
-          </Section>
+          <Reveal run skeleton={<StatementSkeleton />}>
+            <div data-guide="statement-reference" className="mb-5">
+              <span className="block font-mono text-[9px] uppercase tracking-eyebrow text-muted">
+                Reference number
+              </span>
+              <span className="mt-1 block break-all font-mono text-[17px] text-accent sm:text-[19px]">
+                {statement.reference}
+              </span>
+            </div>
 
-          <Section title="Consignment">
-            <CardRow label="Commodity" value={statement.commodity} />
-            <CardRow label="HS code" value={statement.hsCode} mono />
-            <CardRow label="Origin" value={statement.origin} />
-            <CardRow label="Destination" value={statement.destination} />
-            <CardRow label="Net weight" value={statement.weight} mono />
-          </Section>
+            <CardSection title="Operator">
+              <CardRow label="Submitted by" value={statement.submittedBy} />
+              <CardRow label="EORI number" value={statement.eoriNumber} mono />
+            </CardSection>
 
-          <Section title="Evidence">
-            <CardRow label="Plots covered" value={String(statement.plotCount)} mono />
-            <CardRow label="Total area" value={`${statement.totalHectares} ha`} mono />
-            <CardRow label="Risk level" value={statement.riskLevel} accent />
-          </Section>
+            <CardSection title="Consignment">
+              <CardRow label="Commodity" value={statement.commodity} />
+              <CardRow label="HS code" value={statement.hsCode} mono />
+              <CardRow label="Origin" value={statement.origin} />
+              <CardRow label="Destination" value={statement.destination} />
+              <CardRow label="Net weight" value={statement.weight} mono />
+            </CardSection>
 
-          <Section title="Verification">
-            <p className="text-[13px] leading-relaxed text-muted">
-              {statement.verification}
+            <CardSection title="Evidence">
+              <CardRow
+                label="Plots covered"
+                value={<Counter to={statement.plotCount} run={loaded} />}
+                mono
+              />
+              <CardRow
+                label="Total area"
+                value={
+                  <Counter
+                    to={statement.totalHectares}
+                    run={loaded}
+                    decimals={1}
+                    suffix=" ha"
+                  />
+                }
+                mono
+              />
+              <CardRow label="Risk level" value={statement.riskLevel} accent />
+            </CardSection>
+
+            <CardSection title="Verification">
+              <p className="text-[13px] leading-relaxed text-muted">
+                {statement.verification}
+              </p>
+            </CardSection>
+
+            <p className="mt-5 border-t border-border pt-3.5 font-mono text-[9px] uppercase tracking-eyebrow text-dim">
+              Generated {statement.generatedAt}
             </p>
-          </Section>
-
-          <p className="mt-5 border-t border-border pt-3.5 font-mono text-[9px] uppercase tracking-eyebrow text-dim">
-            Generated {statement.generatedAt}
-          </p>
+          </Reveal>
         </div>
       </Card>
 
-      <div className="flex flex-col gap-5">
-        <Card guide="statement-actions" delay={220}>
+      <div className="flex flex-col gap-4 sm:gap-5">
+        <Card guide="statement-actions" delay={180}>
           <span className="mb-3 block font-mono text-[10px] uppercase tracking-eyebrow text-muted">
             Submit
           </span>
@@ -465,7 +605,7 @@ export function StepStatement() {
           </p>
         </Card>
 
-        <Card delay={320}>
+        <Card delay={260}>
           <span className="mb-3 block font-mono text-[10px] uppercase tracking-eyebrow text-muted">
             What happens next
           </span>
@@ -475,8 +615,11 @@ export function StepStatement() {
               'Reference number returned to the operator.',
               'Evidence pack retained for five years.',
             ].map((line, i) => (
-              <li key={line} className="flex gap-2.5 text-[13px] leading-relaxed text-muted">
-                <span className="font-mono text-[11px] text-accent">
+              <li
+                key={line}
+                className="flex gap-2.5 text-[13px] leading-relaxed text-muted"
+              >
+                <span className="shrink-0 font-mono text-[11px] text-accent">
                   {String(i + 1).padStart(2, '0')}
                 </span>
                 {line}
@@ -489,20 +632,15 @@ export function StepStatement() {
   );
 }
 
-function Section({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
+function StatementSkeleton() {
   return (
-    <div className="mb-4 last:mb-0">
-      <span className="mb-1 block font-mono text-[9px] uppercase tracking-eyebrow text-accent">
-        {title}
+    <span aria-hidden className="block">
+      <span className="mb-5 block">
+        <Skeleton w="38%" h={8} className="mb-2" />
+        <Skeleton w="62%" h={20} />
       </span>
-      {children}
-    </div>
+      <SkeletonRows rows={8} />
+    </span>
   );
 }
 
@@ -510,17 +648,17 @@ function Section({
    SHARED
    ======================================================================== */
 
-/** Cyan tick used across the checklist and verification rows. */
+/** Emerald tick. Colour comes from currentColor so it follows the token. */
 function Check() {
   return (
     <span
       aria-hidden
-      className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-success/50 bg-success/15"
+      className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-success/50 bg-success/15 text-success"
     >
       <svg viewBox="0 0 12 12" className="h-2.5 w-2.5" fill="none">
         <path
           d="M2.5 6.4l2.2 2.2 4.8-5"
-          stroke="#10b981"
+          stroke="currentColor"
           strokeWidth="1.8"
           strokeLinecap="round"
           strokeLinejoin="round"

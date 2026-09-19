@@ -15,7 +15,7 @@ export function AnnotationChip({
   return (
     <div
       aria-hidden
-      className="demo-annotation pointer-events-none fixed z-[60] whitespace-nowrap rounded-chip border border-accent/50 bg-[#04121a]/95 px-2 py-1 font-mono text-[10px] uppercase tracking-eyebrow text-accent shadow-glow-accent backdrop-blur-sm"
+      className="demo-annotation pointer-events-none fixed z-[60] whitespace-nowrap rounded-chip border border-accent/50 bg-background/95 px-2 py-1 font-mono text-[10px] uppercase tracking-eyebrow text-accent shadow-glow-accent backdrop-blur-sm"
       style={{ top, left }}
     >
       {text}

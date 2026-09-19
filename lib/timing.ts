@@ -1,13 +1,13 @@
 /**
  * Every demo timing constant lives here so the whole engine can be retuned
- * from one file. Values confirmed present in the live demo bundle.
+ * from one file.
  */
 
 export const timing = {
   /**
-   * Per-WORD stagger for the guide typewriter. The live engine splits on
-   * whitespace and reveals word by word via the .demo-word keyframe — it is
-   * not a character-by-character effect.
+   * Per-WORD stagger for the guide typewriter. The engine splits on whitespace
+   * and reveals word by word via the .demo-word keyframe — it is not a
+   * character-by-character effect.
    */
   guideTypewriterMs: 45,
 
@@ -20,7 +20,7 @@ export const timing = {
   /** Step transition duration. */
   stepEnterMs: 600,
 
-  /** Autoplay dwell per step. */
+  /** Autoplay dwell per step, measured from the end of the step's intro. */
   autoplayStepMs: 7000,
 
   /** Delay between scan/log lines appearing. */
@@ -28,6 +28,31 @@ export const timing = {
 
   /** Spotlight travel duration — must match .demo-spot in globals.css. */
   spotTravelMs: 520,
+
+  /* --- premium pass --- */
+
+  /** How long the page-load bar runs before handing over to demo progress. */
+  topbarLoadMs: 900,
+
+  /** Skeleton hold before real content swaps in. Short: it must feel like
+   *  loading, not waiting. */
+  skeletonMs: 620,
+
+  /** Animated counter sweep. */
+  counterMs: 1150,
+
+  /** Progress-ring fill — must match .demo-ring in globals.css. */
+  ringFillMs: 1100,
+
+  /**
+   * Time from step mount until the step's own intro (skeletons, counters,
+   * rings, log lines) is considered finished. Drives when the Next button
+   * starts pulsing for attention.
+   */
+  introSettleMs: 2400,
+
+  /** First paint budget: content must be on screen well inside this. */
+  firstPaintMs: 1000,
 } as const;
 
 /** Word-stagger delay helper for the guide bubble. */

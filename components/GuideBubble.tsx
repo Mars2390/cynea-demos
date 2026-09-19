@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { GuideCue } from '@/lib/types';
 import { cueHoldMs, timing, wordDelay } from '@/lib/timing';
+import { useReducedMotion } from '@/lib/hooks';
 import { AnnotationChip } from './ui/AnnotationChip';
 
 interface Rect {
@@ -14,21 +15,24 @@ interface Rect {
 
 /** Padding around a spotlit element. */
 const SPOT_PAD = 10;
-/** Below this viewport width the spotlight is suppressed (matches leads). */
+/** Below this viewport width the spotlight is suppressed: on a phone the
+ *  travelling box fights the layout more than it helps. */
 const SPOT_MIN_WIDTH = 768;
 
 /**
  * Bottom-left guide bubble: mono eyebrow, word-by-word typewriter copy, and a
- * "click or → for next" hint. Drives a single travelling spotlight plus an
+ * "click or space for next" hint. Drives a single travelling spotlight plus an
  * optional annotation chip.
  *
- * Cues advance automatically after their dwell, or early on click / →.
+ * Space (or clicking the bubble) advances a cue. Arrow keys are deliberately
+ * NOT handled here — they belong to step navigation, so no key does two jobs.
  */
 export function GuideBubble({
   cues,
   stepId,
   enabled,
   firedEvents,
+  onAdvanceRef,
 }: {
   cues: GuideCue[];
   /** Changing this resets the cue sequence. */
@@ -36,11 +40,14 @@ export function GuideBubble({
   enabled: boolean;
   /** Event names that have fired, for cues gated with `on`. */
   firedEvents: string[];
+  /** Lets the parent bind Space to cue advance without duplicating listeners. */
+  onAdvanceRef?: React.MutableRefObject<(() => void) | null>;
 }) {
   const [index, setIndex] = useState(0);
   const [visible, setVisible] = useState(false);
   const [rect, setRect] = useState<Rect | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reduced = useReducedMotion();
 
   const clearTimer = () => {
     if (timerRef.current) {
@@ -70,6 +77,15 @@ export function GuideBubble({
     setIndex((i) => Math.min(i + 1, cues.length - 1));
   }, [cues.length]);
 
+  // Expose advance to the parent so it can own the keyboard map.
+  useEffect(() => {
+    if (!onAdvanceRef) return;
+    onAdvanceRef.current = enabled ? advance : null;
+    return () => {
+      onAdvanceRef.current = null;
+    };
+  }, [advance, enabled, onAdvanceRef]);
+
   // Reveal the current cue after its gate delay, then schedule the next one.
   useEffect(() => {
     if (!cue || !gateOpen) {
@@ -85,11 +101,11 @@ export function GuideBubble({
     const showTimer = setTimeout(() => {
       setVisible(true);
 
-      // Auto-advance once this cue has had its dwell, if more remain.
       if (index < cues.length - 1) {
-        timerRef.current = setTimeout(() => {
-          setIndex((i) => Math.min(i + 1, cues.length - 1));
-        }, cueHoldMs(cue.text));
+        timerRef.current = setTimeout(
+          () => setIndex((i) => Math.min(i + 1, cues.length - 1)),
+          cueHoldMs(cue.text),
+        );
       }
     }, openDelay);
 
@@ -99,16 +115,6 @@ export function GuideBubble({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cue?.text, gateOpen, index, cues.length, stepId]);
-
-  // Advance on → (click handling lives on the bubble itself).
-  useEffect(() => {
-    if (!enabled) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowRight') advance();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [enabled, advance]);
 
   // Track the spotlight target. Polled per frame so the box follows elements
   // that are still animating in, and stays correct through scroll and resize.
@@ -175,15 +181,19 @@ export function GuideBubble({
         />
       )}
 
-      {/* The bubble. */}
+      {/* The bubble. Frosted so the mesh reads through it. */}
       <button
         type="button"
         onClick={advance}
         aria-live="polite"
-        className="demo-rise fixed bottom-5 left-5 z-[70] max-w-[330px] cursor-pointer rounded-card border border-accent/30 bg-[#08121a]/92 p-4 text-left shadow-glow-accent backdrop-blur-md transition-colors duration-200 hover:border-accent/55 sm:max-w-[360px]"
+        aria-label="Guide. Click to advance."
+        className="demo-glass demo-rise fixed bottom-4 left-4 z-[70] max-w-[calc(100vw-2rem)] cursor-pointer rounded-card p-4 text-left transition-colors duration-200 hover:border-accent/40 sm:bottom-5 sm:left-5 sm:max-w-[360px]"
       >
         <div className="mb-2 flex items-center gap-2">
-          <span aria-hidden className="relative flex h-2 w-2 items-center justify-center">
+          <span
+            aria-hidden
+            className="relative flex h-2 w-2 shrink-0 items-center justify-center"
+          >
             <span className="demo-orb-ring absolute h-2 w-2 rounded-full bg-accent/70" />
             <span className="demo-orb h-1.5 w-1.5 rounded-full bg-accent" />
           </span>
@@ -192,7 +202,10 @@ export function GuideBubble({
           </span>
         </div>
 
-        <p key={`${stepId}-${index}`} className="text-[14px] leading-relaxed text-foreground">
+        <p
+          key={`${stepId}-${index}`}
+          className="text-[13.5px] leading-relaxed text-foreground sm:text-[14px]"
+        >
           {words.map((word, i) => (
             <span
               key={`${word}-${i}`}
@@ -203,15 +216,19 @@ export function GuideBubble({
               {i < words.length - 1 ? ' ' : ''}
             </span>
           ))}
-          <span
-            aria-hidden
-            className="demo-cursor ml-0.5 inline-block h-[14px] w-[6px] translate-y-[2px] bg-accent"
-            style={{ animationDelay: `${words.length * timing.guideTypewriterMs}ms` }}
-          />
+          {!reduced && (
+            <span
+              aria-hidden
+              className="demo-cursor ml-0.5 inline-block h-[14px] w-[6px] translate-y-[2px] bg-accent"
+              style={{
+                animationDelay: `${words.length * timing.guideTypewriterMs}ms`,
+              }}
+            />
+          )}
         </p>
 
         <span className="mt-2.5 block font-mono text-[9px] uppercase tracking-eyebrow text-dim">
-          click or → for next
+          click or space for next
         </span>
       </button>
     </>

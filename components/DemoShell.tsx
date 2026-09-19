@@ -4,10 +4,12 @@ import type { ReactNode } from 'react';
 import Link from 'next/link';
 import type { Step } from '@/lib/types';
 import { Stepper } from './Stepper';
-import { Button } from './ui/Button';
+import { MeshBackground } from './MeshBackground';
+import { TopProgressBar } from './TopProgressBar';
 
 /**
  * Chrome shared by every agent demo:
+ *   0. ambient mesh + thin top progress bar
  *   1. "Demo mode" strip
  *   2. app header (agent name, Guide + Auto-play toggles)
  *   3. step bar (eyebrow + title) and the segmented stepper
@@ -17,6 +19,8 @@ export function DemoShell({
   tagline,
   steps,
   activeIndex,
+  stepId,
+  progress,
   onSelectStep,
   guideOn,
   onToggleGuide,
@@ -29,6 +33,9 @@ export function DemoShell({
   tagline: string;
   steps: Step[];
   activeIndex: number;
+  stepId: string;
+  /** 0–1 across the whole flow, for the top bar. */
+  progress: number;
   onSelectStep: (id: string) => void;
   guideOn: boolean;
   onToggleGuide: () => void;
@@ -41,20 +48,26 @@ export function DemoShell({
 
   return (
     <div className="demo-stage relative min-h-screen">
+      <MeshBackground stepId={stepId} />
+      <TopProgressBar progress={progress} />
+
       {/* 1 — demo mode strip */}
-      <div className="sticky top-0 z-40 border-b border-accent/20 bg-accent/[0.07] backdrop-blur-md">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-1.5">
+      <div className="sticky top-0 z-40 border-b border-accent/20 bg-background/70 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-1.5 sm:px-5">
           <span className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-eyebrow text-accent">
-            <span aria-hidden className="demo-pulse-dot h-1.5 w-1.5 rounded-full bg-accent" />
+            <span
+              aria-hidden
+              className="demo-pulse-dot h-1.5 w-1.5 shrink-0 rounded-full bg-accent"
+            />
             Demo mode
           </span>
-          <span className="hidden font-mono text-[10px] uppercase tracking-eyebrow text-muted sm:block">
+          <span className="hidden font-mono text-[10px] uppercase tracking-eyebrow text-muted md:block">
             Cynea AI · guided demo
           </span>
           <button
             type="button"
             onClick={onSkip}
-            className="font-mono text-[10px] uppercase tracking-eyebrow text-muted transition-colors hover:text-accent"
+            className="demo-tap shrink-0 font-mono text-[10px] uppercase tracking-eyebrow text-muted transition-colors hover:text-accent"
           >
             Skip to results →
           </button>
@@ -62,46 +75,58 @@ export function DemoShell({
       </div>
 
       {/* 2 — app header */}
-      <header className="border-b border-border bg-background/80 backdrop-blur-md">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-3.5">
-          <div className="flex items-baseline gap-3">
+      <header className="border-b border-border bg-background/50 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-2.5 px-4 py-3.5 sm:px-5">
+          <div className="flex min-w-0 items-baseline gap-2.5">
             <Link
               href="/"
-              className="font-display text-[19px] font-semibold tracking-[-0.4px] text-foreground transition-colors hover:text-accent"
+              className="font-display text-[18px] font-semibold tracking-[-0.4px] text-foreground transition-colors hover:text-accent sm:text-[19px]"
             >
               Cynea
             </Link>
             <span aria-hidden className="text-border-hi">
               /
             </span>
-            <span className="font-display text-[19px] font-semibold tracking-[-0.4px] text-accent">
+            <span className="font-display text-[18px] font-semibold tracking-[-0.4px] text-accent sm:text-[19px]">
               {agent}
             </span>
-            <span className="hidden text-[12px] text-muted md:block">{tagline}</span>
+            <span className="hidden truncate text-[12px] text-muted lg:block">
+              {tagline}
+            </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2">
             <Toggle label="Guide" on={guideOn} onClick={onToggleGuide} />
-            <Toggle label="Auto-play" on={autoplayOn} onClick={onToggleAutoplay} />
+            <Toggle
+              label="Auto-play"
+              on={autoplayOn}
+              onClick={onToggleAutoplay}
+            />
           </div>
         </div>
       </header>
 
       {/* 3 — step bar + stepper */}
-      <div className="mx-auto max-w-6xl px-5 pt-7">
-        <Stepper steps={steps} activeIndex={activeIndex} onSelect={onSelectStep} />
+      <div className="mx-auto max-w-6xl px-4 pt-6 sm:px-5 sm:pt-7">
+        <Stepper
+          steps={steps}
+          activeIndex={activeIndex}
+          onSelect={onSelectStep}
+        />
 
-        <div key={step.id} className="demo-step-in mt-7">
+        <div key={step.id} className="demo-step-in mt-6 sm:mt-7">
           <span className="font-mono text-[10px] uppercase tracking-eyebrow text-accent">
             Step {step.number} of {steps.length} · {step.name}
           </span>
-          <h1 className="mt-2.5 max-w-3xl font-display text-[32px] font-semibold leading-[1.08] tracking-display text-foreground sm:text-[40px] lg:text-[46px]">
+          <h1 className="mt-2.5 max-w-3xl font-display text-[27px] font-semibold leading-[1.1] tracking-display text-foreground xs:text-[32px] sm:text-[40px] lg:text-[46px]">
             {step.title}
           </h1>
         </div>
       </div>
 
-      <main className="mx-auto max-w-6xl px-5 pb-32 pt-8">{children}</main>
+      <main className="mx-auto max-w-6xl px-4 pb-40 pt-7 sm:px-5 sm:pb-32 sm:pt-8">
+        {children}
+      </main>
     </div>
   );
 }
@@ -116,16 +141,26 @@ function Toggle({
   onClick: () => void;
 }) {
   return (
-    <Button variant="ghost" small onClick={onClick} className="!gap-2">
+    <button
+      type="button"
+      onClick={onClick}
+      role="switch"
+      aria-checked={on}
+      className={`demo-tap inline-flex h-7 items-center gap-2 rounded-btn border px-2.5 transition-all duration-200 ease-demo ${
+        on
+          ? 'border-accent/45 bg-accent/10 text-accent'
+          : 'border-border-hi bg-card/70 text-muted hover:border-border-hi hover:text-foreground'
+      }`}
+    >
       <span
         aria-hidden
-        className={`h-1.5 w-1.5 rounded-full transition-colors duration-200 ${
+        className={`h-1.5 w-1.5 shrink-0 rounded-full transition-colors duration-200 ${
           on ? 'bg-accent shadow-glow-accent' : 'bg-dim'
         }`}
       />
       <span className="font-mono text-[10px] uppercase tracking-eyebrow">
         {label}
       </span>
-    </Button>
+    </button>
   );
 }
