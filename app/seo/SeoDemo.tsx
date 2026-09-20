@@ -13,43 +13,39 @@ import { LookSwitch } from '@/components/LookSwitch';
 import { useIntroSettled, useKeyboard, useReducedMotion } from '@/lib/hooks';
 import { tweenScrollTo } from '@/lib/scroll';
 import { cancel as cancelSpeech, prime as primeVoice, speak } from '@/lib/voice';
-import { agent, readyStep, steps } from '@/demos/compliance/config';
-import { guide } from '@/demos/compliance/guide';
+import { agent, descriptions, readyStep, steps } from '@/demos/seo/config';
+import { guide } from '@/demos/seo/guide';
 import {
-  StepCarbon,
-  StepDiligence,
-  StepLedger,
-  StepRegistrar,
-  StepScreen,
-  StepSentinel,
+  StepBrief,
+  StepCrawler,
+  StepKeyword,
+  StepOnPage,
+  StepSerp,
 } from './steps';
 
 const READY = readyStep.id;
-const BASE = '/compliance';
+const BASE = '/seo';
 
 const isValidStep = (id: string) =>
   id === READY || steps.some((s) => s.id === id);
 
-/** Derives the step id from a pathname like /compliance/carbon. */
+/** Derives the step id from a pathname like /seo/serp. */
 function stepFromPathname(pathname: string): string {
   const segment = pathname.replace(/\/+$/, '').split('/').pop() ?? '';
   return isValidStep(segment) ? segment : steps[0].id;
 }
 
 /**
- * The Compliance suite: six agents told as one importer's compliance year.
+ * The SEO suite: five agents told as one month at a mid-size site.
  *
- * Same engine as the standalone demos — the step lives in the URL path and the
- * server already rendered the right one via `initialStep`, so there is no
- * switch-on-hydration. In-demo navigation uses history.pushState so this
- * component never unmounts, which keeps the Guide toggle and the narrator
- * alive across all the steps.
+ * Same engine as the dark suites — and the first light one. The root carries
+ * data-suite="seo", which re-points every colour token to the "Paper" fork in
+ * globals.css, swaps the type stack, and under the glass look selects the
+ * light-glass recipe. No component below knows which suite it is in.
  *
- * There is deliberately no ?step= back-compat here: /compliance is a new route
- * with no legacy links. That redirect belongs only to /diligence, which is
- * handled at the routing layer in next.config.js.
+ * No ?step= back-compat: /seo is a new route with no legacy links.
  */
-export function ComplianceDemo({ initialStep }: { initialStep: string }) {
+export function SeoDemo({ initialStep }: { initialStep: string }) {
   const [stepId, setStepId] = useState(initialStep);
   const [guideOn, setGuideOn] = useState(true);
   const [firedEvents, setFiredEvents] = useState<string[]>([
@@ -168,17 +164,17 @@ export function ComplianceDemo({ initialStep }: { initialStep: string }) {
 
   if (isReady) {
     return (
-      <>
-        <MeshBackground stepId={READY} />
+      <div data-suite="seo" className="min-h-screen bg-background">
+        <MeshBackground stepId="seo-ready" />
         <ParticleBackground />
         <LookSwitch corner />
         <ReadyScreen onReplay={replay} />
-      </>
+      </div>
     );
   }
 
   return (
-    <>
+    <div data-suite="seo" className="min-h-screen bg-background">
       <ParticleBackground />
 
       <DemoShell
@@ -196,12 +192,15 @@ export function ComplianceDemo({ initialStep }: { initialStep: string }) {
         {/* runId in the key makes Replay remount the step, so every counter,
             ring and skeleton starts from zero again. */}
         <div key={`${stepId}-${runId}`} className="demo-step-in">
-          {stepId === 'sentinel' && <StepSentinel />}
-          {stepId === 'screen' && <StepScreen />}
-          {stepId === 'diligence' && <StepDiligence />}
-          {stepId === 'carbon' && <StepCarbon />}
-          {stepId === 'ledger' && <StepLedger />}
-          {stepId === 'registrar' && <StepRegistrar />}
+          {/* The agent's own description, verbatim from the brief. */}
+          <p className="demo-rise demo-scrim mb-5 max-w-3xl text-[13.5px] leading-relaxed text-muted sm:mb-6 sm:text-[14px]">
+            {descriptions[stepId]}
+          </p>
+          {stepId === 'keyword' && <StepKeyword onSkipToResult={() => goto('serp')} />}
+          {stepId === 'brief' && <StepBrief />}
+          {stepId === 'onpage' && <StepOnPage />}
+          {stepId === 'crawler' && <StepCrawler />}
+          {stepId === 'serp' && <StepSerp />}
         </div>
 
         <StepFooter
@@ -221,7 +220,7 @@ export function ComplianceDemo({ initialStep }: { initialStep: string }) {
         firedEvents={firedEvents}
         onAdvanceRef={advanceCueRef}
       />
-    </>
+    </div>
   );
 }
 

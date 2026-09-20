@@ -9,6 +9,7 @@ import { MeshBackground } from '@/components/MeshBackground';
 import { ParticleBackground } from '@/components/ParticleBackground';
 import { Button } from '@/components/ui/Button';
 import { Pill } from '@/components/ui/Pill';
+import { LookSwitch } from '@/components/LookSwitch';
 import { useIntroSettled, useKeyboard, useReducedMotion } from '@/lib/hooks';
 import { tweenScrollTo } from '@/lib/scroll';
 import { cancel as cancelSpeech, prime as primeVoice, speak } from '@/lib/voice';
@@ -167,6 +168,7 @@ export function FinanceDemo({ initialStep }: { initialStep: string }) {
       <div data-suite="finance" className="min-h-screen bg-background">
         <MeshBackground stepId="finance-ready" />
         <ParticleBackground />
+        <LookSwitch corner />
         <ReadyScreen onReplay={replay} />
       </div>
     );

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { MeshBackground } from '@/components/MeshBackground';
 import { ParticleBackground } from '@/components/ParticleBackground';
+import { LookSwitch } from '@/components/LookSwitch';
 import { Pill } from '@/components/ui/Pill';
 import type { DemoCard } from '@/lib/types';
 
@@ -30,6 +31,14 @@ const demos: DemoCard[] = [
     live: true,
   },
   {
+    slug: 'seo',
+    name: 'SEO',
+    role: 'Five agents · one month',
+    blurb:
+      'Rankings built on process, not luck: keyword research, content briefs, on-page optimisation, technical crawling and rank tracking.',
+    live: true,
+  },
+  {
     slug: 'scout',
     name: 'Scout',
     role: 'Prospecting Agent',
@@ -41,13 +50,6 @@ const demos: DemoCard[] = [
     name: 'Reception',
     role: 'Front-Desk Agent',
     blurb: 'Answers, qualifies and routes every inbound enquiry.',
-    live: false,
-  },
-  {
-    slug: 'keyword',
-    name: 'Keyword',
-    role: 'SEO Agent',
-    blurb: 'Builds keyword strategy and briefs from live search demand.',
     live: false,
   },
   {
@@ -71,6 +73,7 @@ export default function HubPage() {
     <div className="demo-stage relative min-h-screen">
       <MeshBackground stepId="ready" />
       <ParticleBackground />
+      <LookSwitch corner />
 
       <main className="mx-auto max-w-6xl px-4 pb-28 pt-16 sm:px-5 sm:pt-28">
         <header className="demo-rise demo-scrim max-w-3xl">

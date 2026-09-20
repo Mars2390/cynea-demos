@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Syne, DM_Sans, JetBrains_Mono } from 'next/font/google';
 import { colors } from '@/lib/tokens';
-import { LOOK_BOOT_SCRIPT, LookSwitch } from '@/components/LookSwitch';
+import { LOOK_BOOT_SCRIPT } from '@/components/LookSwitch';
 import './globals.css';
 
 const syne = Syne({
@@ -56,8 +56,6 @@ export default function RootLayout({
       </head>
       <body className="bg-background text-foreground font-sans antialiased">
         {children}
-        {/* PROTOTYPE — review switch; remove with the prototype. */}
-        <LookSwitch />
       </body>
     </html>
   );

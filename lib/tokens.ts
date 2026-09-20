@@ -99,6 +99,37 @@ export const bar = {
   },
 } as const;
 
+/**
+ * "Paper" — the SEO suite's fork, and the first light palette. Applied by
+ * [data-suite='seo'] in globals.css. The semantic trio sits two shades deeper
+ * than the usual 600s because one token paints text, ticks and pills, and on
+ * white the 600s are fills, not text colours.
+ *
+ * Measured on ground #F7F8FA / card #FFFFFF / worst glass panel (238 239 253):
+ * foreground 17.8 / 18.9 / 16.6 · muted 7.2 / 7.7 / 6.7 · dim 5.5 / 5.9 / 5.1
+ * · indigo 5.9 / 6.3 / 5.5 · hover 7.4 / 7.9 / 6.9 · secondary 5.1 / 5.4 / 4.8
+ * · green-800 6.7 / 7.1 / 6.3 · amber-800 6.7 / 7.1 / 6.2 · red-700 6.1 / 6.5
+ * / 5.7 · white on indigo 6.3.
+ */
+export const paper = {
+  background: '#F7F8FA',
+  accent: '#4F46E5',
+  accentSecondary: '#5F6B7A',
+  success: '#166534',
+  warning: '#92400E',
+  error: '#B91C1C',
+  ch: {
+    accent: '79 70 229',
+    accentSecondary: '95 107 122',
+    success: '22 101 52',
+    warning: '146 64 14',
+    /* Mesh-only pastels: indigo-300, pink-300, teal-200. */
+    indigo: '165 180 252',
+    rose: '249 168 212',
+    teal: '153 246 228',
+  },
+} as const;
+
 /** `alpha(ch.accent, 0.3)` → "rgb(216 180 92 / 0.3)". Valid in CSS and canvas. */
 export const alpha = (channels: string, a: number) =>
   `rgb(${channels} / ${a})`;
@@ -154,6 +185,15 @@ export const meshByStep: Record<string, { a: string; b: string }> = {
   redact: { a: bar.ch.rose, b: bar.ch.oxblood },
   docket: { a: bar.ch.amber, b: bar.ch.oxblood },
   'legal-ready': { a: bar.ch.oxblood, b: bar.ch.rose },
+
+  /* SEO suite (Paper): pastel indigo and rose while the plan is made, teal
+     once the site is being checked, indigo again for the result. */
+  keyword: { a: paper.ch.indigo, b: paper.ch.rose },
+  brief: { a: paper.ch.rose, b: paper.ch.indigo },
+  onpage: { a: paper.ch.indigo, b: paper.ch.teal },
+  crawler: { a: paper.ch.teal, b: paper.ch.indigo },
+  serp: { a: paper.ch.indigo, b: paper.ch.rose },
+  'seo-ready': { a: paper.ch.rose, b: paper.ch.teal },
 
   /* Diligence, standalone. */
   consignment: { a: ch.accentSecondary, b: ch.accent },

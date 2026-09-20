@@ -135,6 +135,215 @@
 }
 
 /* ==========================================================================
+   PALETTE FORK — "Paper", scoped to the SEO suite. The first light suite.
+   Soft off-white ground, white cards, ink text, indigo accent. Green-800 for
+   pass, amber-800 for flag, red-700 for reject — the depths that clear AA as
+   text on white and on a frosted panel over the pastel mesh.
+
+   Measured on ground #F7F8FA / card #FFFFFF / worst glass panel:
+   foreground 17.8 / 18.9 / 16.6 · muted 7.2 / 7.7 / 6.7 · dim 5.5 / 5.9 / 5.1
+   · indigo 5.9 / 6.3 / 5.5 · hover 7.4 / 7.9 / 6.9 · secondary 5.1 / 5.4 / 4.8
+   · pass 6.7 / 7.1 / 6.3 · flag 6.7 / 7.1 / 6.2 · reject 6.1 / 6.5 / 5.7
+   · white on indigo 6.3 (button text).
+
+   Everything below the tokens is the light-mode counterpart of recipes that
+   assumed a dark ground: shadows go soft grey instead of black, highlights
+   go white instead of foreground, glows and the spotlight ring lose weight,
+   and the type stack becomes Fraunces / Inter (loaded by app/seo/layout.tsx).
+   ========================================================================== */
+
+[data-suite='seo'] {
+  --background-ch: 247 248 250;
+  --card-ch: 255 255 255;
+  --card-hover-ch: 250 251 252;
+  --border-ch: 228 231 236;
+  --border-hi-ch: 208 213 221;
+  --foreground-ch: 11 16 32;
+  --muted-ch: 71 84 103;
+  --dim-ch: 91 101 121;
+  --accent-ch: 79 70 229;
+  --accent-hover-ch: 67 56 202;
+  --accent-secondary-ch: 95 107 122;
+  --success-ch: 22 101 52;
+  --warning-ch: 146 64 14;
+  --error-ch: 185 28 28;
+  --on-accent-ch: 255 255 255;
+
+  --grid-line: rgb(var(--foreground-ch) / 0.06);
+  /* A pastel tint faint enough to keep paper from reading as bare white. */
+  --mesh-core: 0.16;
+  --mesh-mid: 0.05;
+  --mesh-vignette: 0.4;
+
+  color-scheme: light;
+  font-family: var(--font-inter), var(--font-dm-sans), sans-serif;
+  /* Rank numbers, scores and volumes must line up in columns. */
+  font-variant-numeric: tabular-nums;
+}
+
+[data-suite='seo'] .demo-stage {
+  color-scheme: light;
+}
+
+/* Type stack: editorial serif for display, Inter for body and UI. Fraunces
+   carries real weights, so headings are not synthesised. */
+[data-suite='seo'] .font-sans {
+  font-family: var(--font-inter), var(--font-dm-sans), sans-serif;
+}
+
+[data-suite='seo'] .font-display {
+  font-family: var(--font-fraunces), Georgia, 'Times New Roman', serif;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  font-variation-settings: 'opsz' 72;
+}
+
+[data-suite='seo'] h1.font-display {
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.06;
+}
+
+/* The particle field is a dark-ground effect; paper does without it. */
+[data-suite='seo'] .demo-particles {
+  display: none;
+}
+
+/* Paper cards: white, hairline, a soft grey lift instead of a dark edge. */
+[data-suite='seo'] .demo-panel {
+  border-color: rgb(var(--foreground-ch) / 0.08);
+  box-shadow:
+    0 1px 2px rgb(16 24 40 / 0.04),
+    0 8px 24px -16px rgb(16 24 40 / 0.14);
+}
+
+[data-suite='seo'] .demo-panel:hover {
+  border-color: rgb(var(--accent-ch) / 0.35);
+}
+
+[data-suite='seo'] .demo-glass {
+  background: rgb(255 255 255 / 0.94);
+  border: 1px solid rgb(var(--foreground-ch) / 0.08);
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255),
+    0 1px 2px rgb(16 24 40 / 0.05),
+    0 14px 36px -22px rgb(16 24 40 / 0.2);
+}
+
+/* Effects that assumed a dark ground: lighter glows, a thinner ring, and the
+   cursor sheen in indigo at a whisper. */
+[data-suite='seo'] .demo-glow {
+  background-color: rgb(var(--accent-ch) / 0.1);
+}
+
+[data-suite='seo'] .demo-spot {
+  box-shadow:
+    0 0 0 1px rgb(var(--accent-ch) / 0.35),
+    0 0 28px rgb(var(--accent-ch) / 0.16);
+}
+
+[data-suite='seo'] .shadow-glow-accent {
+  box-shadow: 0 0 20px rgb(var(--accent-ch) / 0.18);
+}
+
+[data-suite='seo'] .hover\:shadow-glow-accent-lg:hover {
+  box-shadow: 0 0 28px rgb(var(--accent-ch) / 0.26);
+}
+
+[data-suite='seo'] .demo-sheen::before {
+  background: radial-gradient(
+    380px circle at var(--sheen-x) var(--sheen-y),
+    rgb(var(--accent-ch) / 0.06),
+    transparent 62%
+  );
+}
+
+[data-suite='seo'] .demo-next-pulse {
+  animation-name: demo-next-pulse-paper;
+}
+
+@keyframes demo-next-pulse-paper {
+  0%,
+  to {
+    box-shadow:
+      0 0 0 0 rgb(var(--accent-ch) / 0.28),
+      0 0 18px rgb(var(--accent-ch) / 0.2);
+  }
+  60% {
+    box-shadow:
+      0 0 0 10px rgb(var(--accent-ch) / 0),
+      0 0 24px rgb(var(--accent-ch) / 0.26);
+  }
+}
+
+[data-suite='seo'] .demo-annotation {
+  box-shadow: 0 0 16px rgb(var(--accent-ch) / 0.16);
+}
+
+[data-suite='seo'] .demo-scrim::before {
+  background: rgb(var(--background-ch) / 0.7);
+}
+
+/* Premium micro-interactions, SEO only: rows, stats and cards lift on hover.
+   Applied by class from the step components; instant under reduced motion. */
+[data-suite='seo'] .seo-hover {
+  transition:
+    transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 0.22s ease,
+    box-shadow 0.22s ease;
+}
+
+[data-suite='seo'] .seo-hover:hover {
+  transform: translateY(-2px);
+  border-color: rgb(var(--accent-ch) / 0.4);
+  box-shadow: 0 10px 24px -14px rgb(16 24 40 / 0.22);
+}
+
+/* Progress pulse: one soft emerald sweep down a list when it finishes
+   loading. The band is a pseudo-element on the container; it never loops. */
+.seo-pulse {
+  position: relative;
+  overflow: hidden;
+}
+
+.seo-pulse::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -40%;
+  height: 40%;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgb(var(--success-ch) / 0.12) 50%,
+    transparent
+  );
+  animation: seo-pulse 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes seo-pulse {
+  to {
+    top: 100%;
+  }
+}
+
+/* Rolling number: the old and new digits stack; the stack slides one line. */
+.seo-roll {
+  display: inline-block;
+  overflow: hidden;
+  height: 1em;
+  line-height: 1;
+  vertical-align: -0.05em;
+}
+
+.seo-roll > span {
+  display: block;
+  transition: transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* ==========================================================================
    LOOK — "Aurora Glass"  (prototype; opt-in via <html data-look="glass">)
 
    Same brand accents and semantic colours as Tribunal / Tape. What changes:
@@ -197,6 +406,59 @@
   --muted-ch: 176 166 158;
   --dim-ch: 150 140 132;
 }
+
+/* Light glass — SEO. Paper's neutrals stay; the glass knobs and every
+   frosted recipe flip to their white-on-pastel form. Panels sit at 78–86%
+   white so ink, muted and dim keep AA over the strongest blob; saturation
+   stays low so the pastels never turn garish under the blur. */
+[data-look='glass'] [data-suite='seo'] {
+  --glass-blur: 16px;
+  --glass-sat: 115%;
+  --mesh-core: 0.55;
+  --mesh-mid: 0.22;
+  --mesh-c: 0.34;
+  --mesh-vignette: 0.3;
+}
+
+[data-look='glass'] [data-suite='seo'] .demo-panel {
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.78), rgb(255 255 255 / 0.86));
+  border-color: rgb(var(--foreground-ch) / 0.08);
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / 0.9),
+    0 1px 2px rgb(16 24 40 / 0.05),
+    0 24px 48px -28px rgb(16 24 40 / 0.16);
+}
+
+[data-look='glass'] [data-suite='seo'] .demo-panel:hover {
+  border-color: rgb(var(--accent-ch) / 0.35);
+}
+
+[data-look='glass'] [data-suite='seo'] .demo-glass {
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.74), rgb(255 255 255 / 0.84));
+  border: 1px solid rgb(var(--accent-ch) / 0.18);
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255),
+    0 0 0 1px rgb(var(--accent-ch) / 0.04),
+    0 1px 2px rgb(16 24 40 / 0.05),
+    0 30px 60px -34px rgb(16 24 40 / 0.2);
+}
+
+[data-look='glass'] [data-suite='seo'] [data-chrome='top-strip'],
+[data-look='glass'] [data-suite='seo'] .demo-stage > header {
+  background: rgb(255 255 255 / 0.66);
+}
+
+[data-look='glass'] [data-suite='seo'] .demo-pill {
+  background-color: rgb(255 255 255 / 0.85);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255),
+    0 1px 2px rgb(16 24 40 / 0.06);
+}
+
+[data-look='glass'] [data-suite='seo'] .demo-scrim::before {
+  background: rgb(255 255 255 / 0.62);
+}
+
 
 /* Standard panel: frosted, lit along the top edge, lifted off the aurora. */
 [data-look='glass'] .demo-panel {
@@ -1015,6 +1277,7 @@ body {
   .demo-skeleton,
   .demo-next-pulse,
   .demo-voice-wait,
+  .seo-pulse::after,
   .demo-topbar,
   .demo-ping,
   .demo-seal {
@@ -1023,8 +1286,14 @@ body {
 
   .demo-spot,
   .demo-annotation,
-  .demo-sheen::before {
+  .demo-sheen::before,
+  .seo-hover,
+  .seo-roll > span {
     transition: none !important;
+  }
+
+  .seo-hover:hover {
+    transform: none !important;
   }
 
   /* Rings must still show their final value, just without the sweep. */
