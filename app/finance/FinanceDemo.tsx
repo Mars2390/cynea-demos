@@ -9,9 +9,9 @@ import { MeshBackground } from '@/components/MeshBackground';
 import { ParticleBackground } from '@/components/ParticleBackground';
 import { Button } from '@/components/ui/Button';
 import { Pill } from '@/components/ui/Pill';
-import { timing } from '@/lib/timing';
 import { useIntroSettled, useKeyboard, useReducedMotion } from '@/lib/hooks';
 import { tweenScrollTo } from '@/lib/scroll';
+import { cancel as cancelSpeech, prime as primeVoice, speak } from '@/lib/voice';
 import { agent, descriptions, readyStep, steps } from '@/demos/finance/config';
 import { guide } from '@/demos/finance/guide';
 import {
@@ -48,7 +48,6 @@ function stepFromPathname(pathname: string): string {
 export function FinanceDemo({ initialStep }: { initialStep: string }) {
   const [stepId, setStepId] = useState(initialStep);
   const [guideOn, setGuideOn] = useState(true);
-  const [autoplayOn, setAutoplayOn] = useState(true);
   const [firedEvents, setFiredEvents] = useState<string[]>([
     `step:${initialStep}`,
   ]);
@@ -120,21 +119,14 @@ export function FinanceDemo({ initialStep }: { initialStep: string }) {
   const replay = useCallback(() => {
     setFiredEvents([`step:${steps[0].id}`]);
     setRunId((n) => n + 1);
-    setAutoplayOn(true);
     setGuideOn(true);
     goto(steps[0].id);
   }, [goto]);
 
   const settled = useIntroSettled(`${stepId}-${runId}`);
 
-  // Auto-play advances only after the intro has settled, so a step is never
-  // cut off mid-reveal.
-  useEffect(() => {
-    if (!autoplayOn || isReady || !settled) return;
-    const t = setTimeout(next, timing.autoplayStepMs);
-    return () => clearTimeout(t);
-  }, [autoplayOn, isReady, settled, next, stepId, runId]);
-
+  // Human-paced: nothing advances on a timer. The step settles and waits for
+  // the viewer — Next, an arrow key, the stepper or Skip.
   // Arrows move between steps; Space advances a guide cue; Esc opens replay.
   useKeyboard({
     ArrowRight: () => {
@@ -147,6 +139,25 @@ export function FinanceDemo({ initialStep }: { initialStep: string }) {
       else goto(READY);
     },
   });
+
+  // The narrator's closer on the ready screen. The step cues are spoken by
+  // GuideBubble; here there is no bubble, so the shell speaks. Cancelled on
+  // Replay, on ← back to the last step, or when the page goes away.
+  useEffect(() => {
+    if (!isReady) return;
+    primeVoice(); // listen for the gesture from the first frame
+    const t = setTimeout(
+      () =>
+        speak(
+          `That was the ${agent.name} suite. Ready to try this with your own business? Book a demo with Irene.`,
+        ),
+      700,
+    );
+    return () => {
+      clearTimeout(t);
+      cancelSpeech();
+    };
+  }, [isReady, runId]);
 
   /** 0–1 across the whole flow, including the ready screen. */
   const progress = isReady ? 1 : (activeIndex + 1) / (steps.length + 1);
@@ -175,8 +186,6 @@ export function FinanceDemo({ initialStep }: { initialStep: string }) {
         onSelectStep={goto}
         guideOn={guideOn}
         onToggleGuide={() => setGuideOn((v) => !v)}
-        autoplayOn={autoplayOn}
-        onToggleAutoplay={() => setAutoplayOn((v) => !v)}
         onSkip={() => goto(READY)}
       >
         {/* runId in the key makes Replay remount the step, so every counter,

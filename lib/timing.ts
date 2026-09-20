@@ -22,6 +22,8 @@ export const timing = {
 
   /** Autoplay dwell per step, measured from the end of the step's intro. */
   autoplayStepMs: 7000,
+  /** Pause after a narrated cue ends before the bubble moves to the next. */
+  voiceTailMs: 700,
 
   /** Delay between scan/log lines appearing. */
   scanLogLineMs: 500,

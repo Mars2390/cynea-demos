@@ -630,6 +630,18 @@ body {
   }
 }
 
+/* The narrator is armed but the browser is waiting for a gesture: a slow,
+   soft ring on the voice toggle invites the click. */
+@keyframes demo-voice-wait {
+  0%,
+  to {
+    box-shadow: 0 0 0 0 rgb(var(--accent-ch) / 0.45);
+  }
+  60% {
+    box-shadow: 0 0 0 6px rgb(var(--accent-ch) / 0);
+  }
+}
+
 /* Attention pulse on the primary advance button. */
 @keyframes demo-next-pulse {
   0%,
@@ -882,6 +894,10 @@ body {
   animation: demo-next-pulse 2s ease-out infinite;
 }
 
+.demo-voice-wait {
+  animation: demo-voice-wait 1.8s ease-out infinite;
+}
+
 .demo-topbar {
   animation: demo-topbar 1.1s ease-in-out infinite;
   transform-origin: left center;
@@ -998,6 +1014,7 @@ body {
   .demo-mesh-wrap,
   .demo-skeleton,
   .demo-next-pulse,
+  .demo-voice-wait,
   .demo-topbar,
   .demo-ping,
   .demo-seal {

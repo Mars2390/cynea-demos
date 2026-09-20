@@ -7,6 +7,7 @@ import { Stepper } from './Stepper';
 import { MeshBackground } from './MeshBackground';
 import { TopProgressBar } from './TopProgressBar';
 import { CHROME_TOP } from '@/lib/scroll';
+import { VoiceToggle } from './VoiceToggle';
 
 /**
  * Chrome shared by every agent demo:
@@ -40,8 +41,12 @@ export function DemoShell({
   onSelectStep: (id: string) => void;
   guideOn: boolean;
   onToggleGuide: () => void;
-  autoplayOn: boolean;
-  onToggleAutoplay: () => void;
+  /**
+   * Legacy. The live suites are human-paced — a step settles and waits for
+   * the viewer — so they no longer pass these. Only app/diligence still does.
+   */
+  autoplayOn?: boolean;
+  onToggleAutoplay?: () => void;
   onSkip: () => void;
   children: ReactNode;
 }) {
@@ -101,11 +106,14 @@ export function DemoShell({
 
           <div className="flex shrink-0 items-center gap-2">
             <Toggle label="Guide" on={guideOn} onClick={onToggleGuide} />
-            <Toggle
-              label="Auto-play"
-              on={autoplayOn}
-              onClick={onToggleAutoplay}
-            />
+            <VoiceToggle />
+            {onToggleAutoplay && (
+              <Toggle
+                label="Auto-play"
+                on={Boolean(autoplayOn)}
+                onClick={onToggleAutoplay}
+              />
+            )}
           </div>
         </div>
       </header>

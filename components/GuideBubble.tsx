@@ -11,6 +11,13 @@ import {
   guideTargetIntoView,
 } from '@/lib/scroll';
 import { AnnotationChip } from './ui/AnnotationChip';
+import {
+  cancel as cancelSpeech,
+  hasActiveLine,
+  isActivated,
+  speak,
+  subscribe as subscribeVoice,
+} from '@/lib/voice';
 
 interface Rect {
   top: number;
@@ -70,6 +77,9 @@ export function GuideBubble({
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   /** Tears down the drift watcher for the cue that is going away. */
   const disposeWatchRef = useRef<(() => void) | null>(null);
+  /** Identifies the cue currently on screen, so a stale narration callback
+   *  (from a cue that has since been left) is ignored. */
+  const cueKeyRef = useRef<string>('');
   const reduced = useReducedMotion();
 
   const clearTimer = () => {
@@ -118,11 +128,17 @@ export function GuideBubble({
   }, [advance, enabled, onAdvanceRef]);
 
   /**
-   * Reveal the current cue, bring its target into view, then schedule the next.
+   * Reveal the current cue, bring its target into view, narrate it, then
+   * schedule the next.
    *
    * The scroll is kicked off here rather than in the measuring effect below so
    * its duration is known at the moment the dwell timer is set: travel time is
    * added to the hold, otherwise a long scroll would eat the reading time.
+   *
+   * Narration and the bubble never drift apart: while the line is being
+   * spoken the cue holds, and the dwell only starts once the last word has
+   * been said. If nothing is spoken — muted, unsupported, tab hidden, or no
+   * gesture yet — the cue keeps its reading-time dwell exactly as before.
    */
   useEffect(() => {
     if (!cue || !gateOpen) {
@@ -132,8 +148,19 @@ export function GuideBubble({
 
     clearTimer();
     setVisible(false);
+    const key = `${stepId}:${index}`;
+    cueKeyRef.current = key;
 
     const openDelay = (index === 0 ? (cue.at ?? 0) : 0) + (cue.after ?? 0);
+    const isLast = index >= cues.length - 1;
+    const armDwell = (ms: number) => {
+      if (isLast) return;
+      clearTimer();
+      timerRef.current = setTimeout(
+        () => setIndex((i) => Math.min(i + 1, cues.length - 1)),
+        ms,
+      );
+    };
 
     const showTimer = setTimeout(() => {
       setVisible(true);
@@ -155,12 +182,13 @@ export function GuideBubble({
       }
       if (scrollMs === 0) setScrolling(false);
 
-      if (index < cues.length - 1) {
-        timerRef.current = setTimeout(
-          () => setIndex((i) => Math.min(i + 1, cues.length - 1)),
-          cueHoldMs(cue.text) + scrollMs,
-        );
-      }
+      const spoken = speak(cue.text, {
+        onEnd: () => {
+          if (cueKeyRef.current !== key) return; // the bubble has moved on
+          armDwell(timing.voiceTailMs);
+        },
+      });
+      if (spoken !== 'speaking') armDwell(cueHoldMs(cue.text) + scrollMs);
     }, openDelay);
 
     return () => {
@@ -168,9 +196,27 @@ export function GuideBubble({
       clearTimer();
       stopWatching();
       cancelScroll();
+      cancelSpeech();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cue?.text, cue?.target, gateOpen, index, cues.length, stepId, reduced]);
+
+  /**
+   * The first gesture on a cold deep link arms the narrator, which then
+   * speaks the cue that is on screen. Hold that cue for the speech rather
+   * than letting its reading-time dwell cut the line off. Only the
+   * activation edge does this — a mute toggle must not touch the timer.
+   */
+  const wasActivatedRef = useRef(false);
+  useEffect(() => {
+    wasActivatedRef.current = isActivated();
+    return subscribeVoice(() => {
+        const now = isActivated();
+        const edge = now && !wasActivatedRef.current;
+        wasActivatedRef.current = now;
+        if (edge && hasActiveLine()) clearTimer();
+    });
+  }, []);
 
   // Track the spotlight target. Polled per frame so the box follows elements
   // that are still animating in, stays glued through a guided scroll, and
