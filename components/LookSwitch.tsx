@@ -46,7 +46,7 @@ export function LookSwitch() {
       onClick={toggle}
       aria-pressed={glass}
       title="Prototype: switch between the original look and Aurora Glass"
-      className="demo-tap fixed bottom-4 right-4 z-[80] rounded-full border border-border-hi bg-background/80 px-3 py-1.5 font-mono text-[10px] uppercase tracking-eyebrow text-muted backdrop-blur-md transition-colors hover:border-accent/50 hover:text-foreground print:hidden"
+      className="fixed bottom-4 right-4 z-[80] rounded-full border border-border-hi bg-background/80 px-3 py-1.5 font-mono text-[10px] uppercase tracking-eyebrow text-muted backdrop-blur-md transition-colors hover:border-accent/50 hover:text-foreground print:hidden"
     >
       Look · {glass ? 'Glass' : 'Dark'}
     </button>

@@ -69,6 +69,36 @@ export const tape = {
   },
 } as const;
 
+/**
+ * "Bar" — the Legal suite's fork. Applied by [data-suite='legal'] in
+ * globals.css. Claret is the deepest oxblood that clears AA as text on the
+ * card surface (stricter than the ground); true oxblood lives in the mesh,
+ * where it carries no text.
+ *
+ * Measured on card #14100F / ground #0A0708: foreground 16.4 / 17.7 · muted
+ * 7.2 / 7.6 · dim 5.2 / 5.6 · claret 4.6 / 4.9 · hover 5.4 / 5.7 · ivory
+ * 15.3 / 16.5 · lime 10.7 / 11.5 · amber 11.2 / 12.0 · vermilion 6.2 / 6.5
+ * · ink on claret 4.9. Vermilion sits ΔE 35 from claret, 60 from amber.
+ */
+export const bar = {
+  background: '#0A0708',
+  accent: '#DA4862',
+  accentSecondary: '#F2E8D5',
+  success: '#4ADE80',
+  warning: '#FBBF24',
+  error: '#FF5C3A',
+  ch: {
+    accent: '218 72 98',
+    accentSecondary: '242 232 213',
+    success: '74 222 128',
+    warning: '251 191 36',
+    /* Mesh-only hues: oxblood, warm amber, deep rose. */
+    oxblood: '176 50 74',
+    amber: '224 160 60',
+    rose: '142 42 90',
+  },
+} as const;
+
 /** `alpha(ch.accent, 0.3)` → "rgb(216 180 92 / 0.3)". Valid in CSS and canvas. */
 export const alpha = (channels: string, a: number) =>
   `rgb(${channels} / ${a})`;
@@ -114,6 +144,16 @@ export const meshByStep: Record<string, { a: string; b: string }> = {
   forecast: { a: tape.ch.accent, b: tape.ch.accentSecondary },
   reporter: { a: tape.ch.success, b: tape.ch.accent },
   'finance-ready': { a: tape.ch.accent, b: tape.ch.accentSecondary },
+
+  /* Legal suite (Bar): rose and amber at intake, oxblood as the matter
+     deepens into research and the contract, back to rose for disclosure,
+     amber and oxblood once the obligations are on the calendar. */
+  intake: { a: bar.ch.rose, b: bar.ch.amber },
+  precedent: { a: bar.ch.oxblood, b: bar.ch.rose },
+  counsel: { a: bar.ch.oxblood, b: bar.ch.amber },
+  redact: { a: bar.ch.rose, b: bar.ch.oxblood },
+  docket: { a: bar.ch.amber, b: bar.ch.oxblood },
+  'legal-ready': { a: bar.ch.oxblood, b: bar.ch.rose },
 
   /* Diligence, standalone. */
   consignment: { a: ch.accentSecondary, b: ch.accent },

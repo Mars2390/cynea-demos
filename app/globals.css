@@ -103,6 +103,38 @@
 }
 
 /* ==========================================================================
+   PALETTE FORK — "Bar", scoped to the Legal suite
+   Warm reddish-charcoal ground, claret accent, ivory secondary. Lime for
+   pass, amber for flag, vermilion for reject — chosen ΔE 35 from the claret
+   brand so a rejection never reads as branding.
+
+   Measured on card #14100F / ground #0A0708: foreground 16.4 / 17.7 · muted
+   7.2 / 7.6 · dim 5.2 / 5.6 · claret 4.6 / 4.9 · hover 5.4 / 5.7 · ivory
+   15.3 / 16.5 · lime 10.7 / 11.5 · amber 11.2 / 12.0 · vermilion 6.2 / 6.5
+   · ink on claret 4.9 (button text).
+   ========================================================================== */
+
+[data-suite='legal'] {
+  --background-ch: 10 7 8;
+  --card-ch: 20 16 15;
+  --card-hover-ch: 28 22 21;
+  --border-ch: 36 28 26;
+  --border-hi-ch: 53 41 42;
+  --foreground-ch: 245 240 232;
+  --muted-ch: 167 158 151;
+  --dim-ch: 142 133 126;
+  --accent-ch: 218 72 98;
+  --accent-hover-ch: 226 90 115;
+  --accent-secondary-ch: 242 232 213;
+  --success-ch: 74 222 128;
+  --warning-ch: 251 191 36;
+  --error-ch: 255 92 58;
+  --on-accent-ch: 10 7 8;
+
+  --grid-line: rgb(var(--foreground-ch) / 0.04);
+}
+
+/* ==========================================================================
    LOOK — "Aurora Glass"  (prototype; opt-in via <html data-look="glass">)
 
    Same brand accents and semantic colours as Tribunal / Tape. What changes:
@@ -150,6 +182,20 @@
   --foreground-ch: 242 246 252;
   --muted-ch: 156 168 198;
   --dim-ch: 138 150 180;
+}
+
+[data-look='glass'] [data-suite='legal'] {
+  /* Bar neutrals, lifted. Claret lifts one notch with them so it still
+     clears AA on the lifted card (4.7); every other accent is untouched. */
+  --accent-ch: 222 78 104;
+  --background-ch: 13 9 11;
+  --card-ch: 26 19 20;
+  --card-hover-ch: 34 25 27;
+  --border-ch: 58 44 46;
+  --border-hi-ch: 82 63 66;
+  --foreground-ch: 247 242 235;
+  --muted-ch: 176 166 158;
+  --dim-ch: 150 140 132;
 }
 
 /* Standard panel: frosted, lit along the top edge, lifted off the aurora. */
@@ -315,6 +361,16 @@
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
+}
+
+/* Bar has the least headroom of the three accents (claret 4.6:1), so an
+   accent-tinted pill puts claret text on a claret wash and fails AA. Legal's
+   accent pills sit on a near-solid base with a 5% tint and the lighter claret
+   for text — measured 5.3:1 — in both looks. */
+[data-suite='legal'] .demo-pill[data-tone='accent'] {
+  background-color: rgb(var(--card-ch) / 0.92);
+  background-image: linear-gradient(rgb(var(--accent-ch) / 0.05), rgb(var(--accent-ch) / 0.05));
+  color: rgb(var(--accent-hover-ch));
 }
 
 * {

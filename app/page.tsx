@@ -22,25 +22,18 @@ const demos: DemoCard[] = [
     live: true,
   },
   {
+    slug: 'legal',
+    name: 'Legal',
+    role: 'Five agents · one matter',
+    blurb:
+      'The document work behind the judgement calls: matter intake, legal research, contract review, document redaction and deadline tracking.',
+    live: true,
+  },
+  {
     slug: 'scout',
     name: 'Scout',
     role: 'Prospecting Agent',
     blurb: 'Finds and qualifies prospects that match your best customers.',
-    live: false,
-  },
-  {
-    slug: 'reconcile',
-    name: 'Reconcile',
-    role: 'Finance Agent',
-    blurb:
-      'Matches transactions, flags exceptions and closes the books faster.',
-    live: false,
-  },
-  {
-    slug: 'counsel',
-    name: 'Counsel',
-    role: 'Legal Agent',
-    blurb: 'Reviews contracts, surfaces risky clauses and tracks obligations.',
     live: false,
   },
   {
