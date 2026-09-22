@@ -164,7 +164,7 @@ export function LegalDemo({ initialStep }: { initialStep: string }) {
 
   if (isReady) {
     return (
-      <div data-suite="legal" className="min-h-screen bg-background">
+      <div data-suite="legal" className="isolate min-h-screen bg-background">
         <MeshBackground stepId="legal-ready" />
         <ParticleBackground />
         <LookSwitch corner />
@@ -174,7 +174,7 @@ export function LegalDemo({ initialStep }: { initialStep: string }) {
   }
 
   return (
-    <div data-suite="legal" className="min-h-screen bg-background">
+    <div data-suite="legal" className="isolate min-h-screen bg-background">
       <ParticleBackground />
 
       <DemoShell

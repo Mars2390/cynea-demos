@@ -28,6 +28,20 @@ interface Rect {
 
 /** Padding around a spotlit element. */
 const SPOT_PAD = 10;
+/** The chip's height above the frame edge when it sits outside the spotlight. */
+const CHIP_LIFT = 12;
+
+/**
+ * Where the annotation chip goes for a spotlight whose frame top is `top`.
+ * Above the frame when there is room between the sticky strip and the frame;
+ * otherwise 2px inside the frame — the target's own padding (SPOT_PAD plus a
+ * card's 20px) keeps it off the first line — and never under the strip.
+ */
+function chipTop(top: number, stripBottom: number): number {
+  const above = top - CHIP_LIFT;
+  if (above >= stripBottom + 4) return Math.max(above, 8);
+  return Math.max(top + 2, stripBottom + 4);
+}
 
 /**
  * Bottom-left guide bubble: mono eyebrow, word-by-word typewriter copy, and a
@@ -307,9 +321,11 @@ export function GuideBubble({
         <AnnotationChip
           text={cue.annotation}
           // Pinned across the spotlight's top edge, like a tag on the frame:
-          // clear of whatever sits directly above a stacked target, and never
-          // tucked under the strip when the target is parked beneath it.
-          top={Math.max(rect.top - 12, stripBottom + 4, 8)}
+          // clear of whatever sits directly above a stacked target. When the
+          // target is parked under the strip there is no room above the frame;
+          // sliding the chip down would put it on the card's first line, so it
+          // rides the frame's inner edge instead, inside the card's own padding.
+          top={chipTop(rect.top, stripBottom)}
           left={rect.left + 4}
           glued={scrolling}
         />

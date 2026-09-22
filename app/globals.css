@@ -299,14 +299,176 @@
   box-shadow: 0 10px 24px -14px rgb(16 24 40 / 0.22);
 }
 
+/* ==========================================================================
+   PALETTE FORK — "Chalk", scoped to the EdTech suite. The second light suite,
+   at the warm end: ivory ground, white cards, forest ink, teal-700 accent, a
+   coral companion that only ever paints lines, dividers, dots and the mesh.
+   Green-800 for pass, amber-800 for flag, red-700 for reject.
+
+   Measured on ground #FBF9F4 / card #FFFFFF / worst glass panel #FEF4EA /
+   worst glass scrim #FEF0E0:
+   foreground 13.6 / 14.3 / 13.2 / 12.7 · muted 6.0 / 6.4 / 5.9 / 5.7
+   · dim 5.3 / 5.6 / 5.2 / 5.0 · teal 5.2 / 5.5 / 5.0 / 4.9
+   · hover 7.2 / 7.6 / 7.0 / 6.8 · coral (non-text) 3.4 / 3.6 / 3.3 / 3.2
+   · pass 6.8 / 7.1 / 6.6 / 6.4 · flag 6.7 / 7.1 / 6.6 / 6.3
+   · reject 6.2 / 6.5 / 6.0 / 5.8 · white on teal 5.5 (button text).
+
+   Same light-mode counterparts as Paper, warmed: shadows are a warm grey
+   rather than a cool one, highlights are warm white, and the type stack is
+   Newsreader / Inter (loaded by app/edtech/layout.tsx).
+   ========================================================================== */
+
+[data-suite='edtech'] {
+  --background-ch: 251 249 244;
+  --card-ch: 255 255 255;
+  --card-hover-ch: 253 252 248;
+  --border-ch: 232 227 216;
+  --border-hi-ch: 212 205 189;
+  --foreground-ch: 26 46 42;
+  --muted-ch: 82 99 95;
+  --dim-ch: 92 107 103;
+  --accent-ch: 15 118 110;
+  --accent-hover-ch: 17 94 89;
+  --accent-secondary-ch: 234 88 12;
+  --success-ch: 22 101 52;
+  --warning-ch: 146 64 14;
+  --error-ch: 185 28 28;
+  --on-accent-ch: 255 255 255;
+
+  --grid-line: rgb(var(--foreground-ch) / 0.06);
+  /* A warm tint faint enough to keep ivory from reading as bare paper. */
+  --mesh-core: 0.16;
+  --mesh-mid: 0.05;
+  --mesh-vignette: 0.4;
+
+  color-scheme: light;
+  font-family: var(--font-inter), var(--font-dm-sans), sans-serif;
+  /* Scores, counts and percentages must line up in columns. */
+  font-variant-numeric: tabular-nums;
+}
+
+[data-suite='edtech'] .demo-stage {
+  color-scheme: light;
+}
+
+/* Type stack: a warm humanist serif for display, Inter for body and UI.
+   Newsreader carries a real weight axis, so headings are not synthesised. */
+[data-suite='edtech'] .font-sans {
+  font-family: var(--font-inter), var(--font-dm-sans), sans-serif;
+}
+
+[data-suite='edtech'] .font-display {
+  font-family: var(--font-newsreader), Georgia, 'Times New Roman', serif;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+[data-suite='edtech'] h1.font-display {
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  line-height: 1.08;
+}
+
+/* The particle field is a dark-ground effect; chalk does without it. */
+[data-suite='edtech'] .demo-particles {
+  display: none;
+}
+
+/* Chalk cards: white, warm hairline, a soft warm-grey lift. */
+[data-suite='edtech'] .demo-panel {
+  border-color: rgb(var(--foreground-ch) / 0.08);
+  box-shadow:
+    0 1px 2px rgb(38 32 20 / 0.04),
+    0 8px 24px -16px rgb(38 32 20 / 0.14);
+}
+
+[data-suite='edtech'] .demo-panel:hover {
+  border-color: rgb(var(--accent-ch) / 0.35);
+}
+
+[data-suite='edtech'] .demo-glass {
+  background: rgb(255 253 248 / 0.94);
+  border: 1px solid rgb(var(--foreground-ch) / 0.08);
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255),
+    0 1px 2px rgb(38 32 20 / 0.05),
+    0 14px 36px -22px rgb(38 32 20 / 0.2);
+}
+
+/* Effects that assumed a dark ground: lighter glows, a thinner ring, and the
+   cursor sheen in teal at a whisper. */
+[data-suite='edtech'] .demo-glow {
+  background-color: rgb(var(--accent-ch) / 0.1);
+}
+
+/* The spotlight ring is a UI boundary and must clear 3:1 against the ivory
+   (WCAG 1.4.11). Teal at Paper's 35% composites to ~1.7:1, so Chalk draws
+   the ring in the deeper teal, nearly solid and two device pixels wide — a
+   chalk line that is never only an anti-aliased edge — and keeps the glow a
+   whisper, since the halo is what the ring is measured against. */
+[data-suite='edtech'] .demo-spot {
+  box-shadow:
+    0 0 0 2px rgb(var(--accent-hover-ch) / 0.95),
+    0 0 28px rgb(var(--accent-ch) / 0.12);
+}
+
+[data-suite='edtech'] .shadow-glow-accent {
+  box-shadow: 0 0 20px rgb(var(--accent-ch) / 0.18);
+}
+
+[data-suite='edtech'] .hover\:shadow-glow-accent-lg:hover {
+  box-shadow: 0 0 28px rgb(var(--accent-ch) / 0.26);
+}
+
+[data-suite='edtech'] .demo-sheen::before {
+  background: radial-gradient(
+    380px circle at var(--sheen-x) var(--sheen-y),
+    rgb(var(--accent-ch) / 0.06),
+    transparent 62%
+  );
+}
+
+[data-suite='edtech'] .demo-next-pulse {
+  animation-name: demo-next-pulse-paper;
+}
+
+[data-suite='edtech'] .demo-annotation {
+  box-shadow: 0 0 16px rgb(var(--accent-ch) / 0.16);
+}
+
+[data-suite='edtech'] .demo-scrim::before {
+  background: rgb(var(--background-ch) / 0.7);
+}
+
+/* Premium micro-interactions, EdTech only: rows, stats and cards lift on
+   hover. Applied by class from the step components; instant under reduced
+   motion. */
+[data-suite='edtech'] .edtech-hover {
+  transition:
+    translate 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 0.22s ease,
+    box-shadow 0.22s ease;
+}
+
+/* The lift is the individual `translate` property, not `transform`: rows
+   that entered with .demo-rise keep that animation's filled transform, which
+   would otherwise win over a hover transform. */
+[data-suite='edtech'] .edtech-hover:hover {
+  translate: 0 -2px;
+  border-color: rgb(var(--accent-ch) / 0.4);
+  box-shadow: 0 10px 24px -14px rgb(38 32 20 / 0.22);
+}
+
 /* Progress pulse: one soft emerald sweep down a list when it finishes
    loading. The band is a pseudo-element on the container; it never loops. */
-.seo-pulse {
+.seo-pulse,
+.edtech-pulse {
   position: relative;
   overflow: hidden;
 }
 
-.seo-pulse::after {
+.seo-pulse::after,
+.edtech-pulse::after {
   content: '';
   position: absolute;
   left: 0;
@@ -330,7 +492,8 @@
 }
 
 /* Rolling number: the old and new digits stack; the stack slides one line. */
-.seo-roll {
+.seo-roll,
+.edtech-roll {
   display: inline-block;
   overflow: hidden;
   height: 1em;
@@ -338,7 +501,8 @@
   vertical-align: -0.05em;
 }
 
-.seo-roll > span {
+.seo-roll > span,
+.edtech-roll > span {
   display: block;
   transition: transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
@@ -458,6 +622,60 @@
 [data-look='glass'] [data-suite='seo'] .demo-scrim::before {
   background: rgb(255 255 255 / 0.62);
 }
+
+/* Warm light glass — EdTech. Chalk's neutrals stay; the frost is a warm
+   white (255 253 248) rather than pure white, so panels read warm-frosted
+   on the ivory rather than cool. Same alphas as Paper's glass: 78–86% on
+   panels, 74–84% on the hero glass. The accent blob is quieter than SEO's
+   because teal-700 is a deep colour and would muddy the middle of the page. */
+[data-look='glass'] [data-suite='edtech'] {
+  --glass-blur: 16px;
+  --glass-sat: 115%;
+  --mesh-core: 0.55;
+  --mesh-mid: 0.22;
+  --mesh-c: 0.22;
+  --mesh-vignette: 0.3;
+}
+
+[data-look='glass'] [data-suite='edtech'] .demo-panel {
+  background: linear-gradient(180deg, rgb(255 253 248 / 0.78), rgb(255 253 248 / 0.86));
+  border-color: rgb(var(--foreground-ch) / 0.08);
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / 0.9),
+    0 1px 2px rgb(38 32 20 / 0.05),
+    0 24px 48px -28px rgb(38 32 20 / 0.16);
+}
+
+[data-look='glass'] [data-suite='edtech'] .demo-panel:hover {
+  border-color: rgb(var(--accent-ch) / 0.35);
+}
+
+[data-look='glass'] [data-suite='edtech'] .demo-glass {
+  background: linear-gradient(180deg, rgb(255 253 248 / 0.74), rgb(255 253 248 / 0.84));
+  border: 1px solid rgb(var(--accent-ch) / 0.18);
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255),
+    0 0 0 1px rgb(var(--accent-ch) / 0.04),
+    0 1px 2px rgb(38 32 20 / 0.05),
+    0 30px 60px -34px rgb(38 32 20 / 0.2);
+}
+
+[data-look='glass'] [data-suite='edtech'] [data-chrome='top-strip'],
+[data-look='glass'] [data-suite='edtech'] .demo-stage > header {
+  background: rgb(255 253 248 / 0.66);
+}
+
+[data-look='glass'] [data-suite='edtech'] .demo-pill {
+  background-color: rgb(255 253 248 / 0.85);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255),
+    0 1px 2px rgb(38 32 20 / 0.06);
+}
+
+[data-look='glass'] [data-suite='edtech'] .demo-scrim::before {
+  background: rgb(255 253 248 / 0.62);
+}
+
 
 
 /* Standard panel: frosted, lit along the top edge, lifted off the aurora. */
@@ -1278,6 +1496,7 @@ body {
   .demo-next-pulse,
   .demo-voice-wait,
   .seo-pulse::after,
+  .edtech-pulse::after,
   .demo-topbar,
   .demo-ping,
   .demo-seal {
@@ -1288,12 +1507,16 @@ body {
   .demo-annotation,
   .demo-sheen::before,
   .seo-hover,
-  .seo-roll > span {
+  .edtech-hover,
+  .seo-roll > span,
+  .edtech-roll > span {
     transition: none !important;
   }
 
-  .seo-hover:hover {
+  .seo-hover:hover,
+  .edtech-hover:hover {
     transform: none !important;
+    translate: none !important;
   }
 
   /* Rings must still show their final value, just without the sweep. */

@@ -39,6 +39,14 @@ const demos: DemoCard[] = [
     live: true,
   },
   {
+    slug: 'edtech',
+    name: 'EdTech',
+    role: 'Six agents · one term',
+    blurb:
+      'Teachers keep the judgement, agents take the busywork: assessment generation, marking and feedback, curriculum mapping, learner progress, study support and school communications.',
+    live: true,
+  },
+  {
     slug: 'scout',
     name: 'Scout',
     role: 'Prospecting Agent',
@@ -57,13 +65,6 @@ const demos: DemoCard[] = [
     name: 'Social',
     role: 'Social Media Agent',
     blurb: 'Plans, writes and schedules content across every channel.',
-    live: false,
-  },
-  {
-    slug: 'marker',
-    name: 'Marker',
-    role: 'Assessment Agent',
-    blurb: 'Marks submissions consistently and explains every grade.',
     live: false,
   },
 ];

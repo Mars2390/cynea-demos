@@ -165,7 +165,7 @@ export function FinanceDemo({ initialStep }: { initialStep: string }) {
 
   if (isReady) {
     return (
-      <div data-suite="finance" className="min-h-screen bg-background">
+      <div data-suite="finance" className="isolate min-h-screen bg-background">
         <MeshBackground stepId="finance-ready" />
         <ParticleBackground />
         <LookSwitch corner />
@@ -175,7 +175,7 @@ export function FinanceDemo({ initialStep }: { initialStep: string }) {
   }
 
   return (
-    <div data-suite="finance" className="min-h-screen bg-background">
+    <div data-suite="finance" className="isolate min-h-screen bg-background">
       <ParticleBackground />
 
       <DemoShell

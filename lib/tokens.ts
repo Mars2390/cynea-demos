@@ -130,6 +130,40 @@ export const paper = {
   },
 } as const;
 
+/**
+ * "Chalk" — the EdTech suite's fork, and the second light palette: warm
+ * ivory ground, forest ink, teal-700 accent. Applied by [data-suite='edtech']
+ * in globals.css. The coral is a companion for lines, dividers, dots and the
+ * mesh only — it is 3.4:1 on ivory, never a text colour.
+ *
+ * Measured on ground #FBF9F4 / card #FFFFFF / worst glass panel #FEF4EA /
+ * worst glass scrim #FEF0E0 (coral blob at core alpha under the frost):
+ * foreground 13.6 / 14.3 / 13.2 / 12.7 · muted 6.0 / 6.4 / 5.9 / 5.7
+ * · dim 5.3 / 5.6 / 5.2 / 5.0 · teal-700 5.2 / 5.5 / 5.0 / 4.9
+ * · hover teal-800 7.2 / 7.6 / 7.0 / 6.8 · coral (non-text) 3.4 / 3.6 / 3.3 / 3.2
+ * · green-800 6.8 / 7.1 / 6.6 / 6.4 · amber-800 6.7 / 7.1 / 6.6 / 6.3
+ * · red-700 6.2 / 6.5 / 6.0 / 5.8 · white on teal-700 5.5.
+ */
+export const chalk = {
+  background: '#FBF9F4',
+  accent: '#0F766E',
+  accentSecondary: '#EA580C',
+  success: '#166534',
+  warning: '#92400E',
+  error: '#B91C1C',
+  ch: {
+    accent: '15 118 110',
+    accentSecondary: '234 88 12',
+    success: '22 101 52',
+    warning: '146 64 14',
+    /* Mesh-only pastels: teal-200, orange-300, yellow-300. Yellow-200 was
+       tried first and vanished into the ivory — the mesh read as two blobs. */
+    teal: '153 246 228',
+    coral: '253 186 116',
+    yellow: '253 230 138',
+  },
+} as const;
+
 /** `alpha(ch.accent, 0.3)` → "rgb(216 180 92 / 0.3)". Valid in CSS and canvas. */
 export const alpha = (channels: string, a: number) =>
   `rgb(${channels} / ${a})`;
@@ -194,6 +228,18 @@ export const meshByStep: Record<string, { a: string; b: string }> = {
   crawler: { a: paper.ch.teal, b: paper.ch.indigo },
   serp: { a: paper.ch.indigo, b: paper.ch.rose },
   'seo-ready': { a: paper.ch.rose, b: paper.ch.teal },
+
+  /* EdTech suite (Chalk): keyed with the suite prefix because Compliance
+     already owns `registrar`. Teal while the teacher's work is drafted and
+     marked, yellow where the curriculum is laid out, coral low and right
+     once the cohort is being watched, teal again for the send. */
+  'edtech-assessor': { a: chalk.ch.teal, b: chalk.ch.coral },
+  'edtech-marker': { a: chalk.ch.yellow, b: chalk.ch.teal },
+  'edtech-mapper': { a: chalk.ch.teal, b: chalk.ch.yellow },
+  'edtech-signal': { a: chalk.ch.yellow, b: chalk.ch.coral },
+  'edtech-tutor': { a: chalk.ch.teal, b: chalk.ch.coral },
+  'edtech-registrar': { a: chalk.ch.yellow, b: chalk.ch.teal },
+  'edtech-ready': { a: chalk.ch.teal, b: chalk.ch.coral },
 
   /* Diligence, standalone. */
   consignment: { a: ch.accentSecondary, b: ch.accent },

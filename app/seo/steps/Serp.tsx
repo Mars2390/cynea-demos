@@ -47,10 +47,12 @@ export function StepSerp() {
 
   return (
     <div className="flex flex-col gap-4 sm:gap-5">
-      <div className="grid gap-4 sm:gap-5 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,0.65fr)]">
+      {/* grid-cols-1 = minmax(0, 1fr): without the 0 the table's min-width sizes
+          the column and the page is cut off at phone widths. */}
+      <div className="grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,0.65fr)]">
         {/* The table. */}
         <Card guide="rank-table" glass glow delay={60} className="!p-0 overflow-hidden">
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-5 py-3.5">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-5 py-3.5 max-sm:pt-5">
             <span className="font-mono text-[10px] uppercase tracking-eyebrow text-muted">
               Priority keywords · {rankHistory.to}
             </span>

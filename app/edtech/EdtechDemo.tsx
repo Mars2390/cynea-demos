@@ -13,39 +13,46 @@ import { LookSwitch } from '@/components/LookSwitch';
 import { useIntroSettled, useKeyboard, useReducedMotion } from '@/lib/hooks';
 import { tweenScrollTo } from '@/lib/scroll';
 import { cancel as cancelSpeech, prime as primeVoice, speak } from '@/lib/voice';
-import { agent, descriptions, readyStep, steps } from '@/demos/seo/config';
-import { guide } from '@/demos/seo/guide';
+import { agent, descriptions, readyStep, steps } from '@/demos/edtech/config';
+import { guide } from '@/demos/edtech/guide';
 import {
-  StepBrief,
-  StepCrawler,
-  StepKeyword,
-  StepOnPage,
-  StepSerp,
+  StepAssessor,
+  StepMapper,
+  StepMarker,
+  StepRegistrar,
+  StepSignal,
+  StepTutor,
 } from './steps';
 
 const READY = readyStep.id;
-const BASE = '/seo';
+const BASE = '/edtech';
 
 const isValidStep = (id: string) =>
   id === READY || steps.some((s) => s.id === id);
 
-/** Derives the step id from a pathname like /seo/serp. */
+/** Derives the step id from a pathname like /edtech/signal. */
 function stepFromPathname(pathname: string): string {
   const segment = pathname.replace(/\/+$/, '').split('/').pop() ?? '';
   return isValidStep(segment) ? segment : steps[0].id;
 }
 
 /**
- * The SEO suite: five agents told as one month at a mid-size site.
+ * The EdTech suite: six agents told as one term at a mid-size school.
  *
- * Same engine as the dark suites — and the first light one. The root carries
- * data-suite="seo", which re-points every colour token to the "Paper" fork in
- * globals.css, swaps the type stack, and under the glass look selects the
- * light-glass recipe. No component below knows which suite it is in.
+ * Same engine as every other suite, and the second light one. The root
+ * carries data-suite="edtech", which re-points every colour token to the
+ * "Chalk" fork in globals.css, swaps the type stack, and under the glass look
+ * selects the warm-light-glass recipe. No component below knows which suite
+ * it is in. The mesh is keyed with the suite prefix because Compliance
+ * already owns a `registrar` step.
  *
- * No ?step= back-compat: /seo is a new route with no legacy links.
+ * `isolate` on the root matters: the mesh is a fixed layer at z-index -20,
+ * and without its own stacking context the root's ivory background would
+ * paint over it — the aurora would never show.
+ *
+ * No ?step= back-compat: /edtech is a new route with no legacy links.
  */
-export function SeoDemo({ initialStep }: { initialStep: string }) {
+export function EdtechDemo({ initialStep }: { initialStep: string }) {
   const [stepId, setStepId] = useState(initialStep);
   const [guideOn, setGuideOn] = useState(true);
   const [firedEvents, setFiredEvents] = useState<string[]>([
@@ -149,7 +156,7 @@ export function SeoDemo({ initialStep }: { initialStep: string }) {
     const t = setTimeout(
       () =>
         speak(
-          `That was the ${agent.name} suite. Ready to try this with your own business? Book a demo with Irene.`,
+          `That was the ${agent.name} suite. Ready to try this with your own school? Book a demo with Irene.`,
         ),
       700,
     );
@@ -164,8 +171,8 @@ export function SeoDemo({ initialStep }: { initialStep: string }) {
 
   if (isReady) {
     return (
-      <div data-suite="seo" className="isolate min-h-screen bg-background">
-        <MeshBackground stepId="seo-ready" />
+      <div data-suite="edtech" className="isolate min-h-screen bg-background">
+        <MeshBackground stepId="edtech-ready" />
         <ParticleBackground />
         <LookSwitch corner />
         <ReadyScreen onReplay={replay} />
@@ -174,7 +181,7 @@ export function SeoDemo({ initialStep }: { initialStep: string }) {
   }
 
   return (
-    <div data-suite="seo" className="isolate min-h-screen bg-background">
+    <div data-suite="edtech" className="isolate min-h-screen bg-background">
       <ParticleBackground />
 
       <DemoShell
@@ -182,7 +189,7 @@ export function SeoDemo({ initialStep }: { initialStep: string }) {
         tagline={agent.role}
         steps={steps}
         activeIndex={activeIndex}
-        stepId={stepId}
+        stepId={`edtech-${stepId}`}
         progress={progress}
         onSelectStep={goto}
         guideOn={guideOn}
@@ -196,11 +203,12 @@ export function SeoDemo({ initialStep }: { initialStep: string }) {
           <p className="demo-rise demo-scrim mb-5 max-w-3xl text-[13.5px] leading-relaxed text-muted sm:mb-6 sm:text-[14px]">
             {descriptions[stepId]}
           </p>
-          {stepId === 'keyword' && <StepKeyword onSkipToResult={() => goto('serp')} />}
-          {stepId === 'brief' && <StepBrief />}
-          {stepId === 'onpage' && <StepOnPage />}
-          {stepId === 'crawler' && <StepCrawler />}
-          {stepId === 'serp' && <StepSerp />}
+          {stepId === 'assessor' && <StepAssessor onSkipToResult={() => goto('registrar')} />}
+          {stepId === 'marker' && <StepMarker />}
+          {stepId === 'mapper' && <StepMapper />}
+          {stepId === 'signal' && <StepSignal />}
+          {stepId === 'tutor' && <StepTutor />}
+          {stepId === 'registrar' && <StepRegistrar />}
         </div>
 
         <StepFooter
