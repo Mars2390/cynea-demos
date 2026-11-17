@@ -9,13 +9,52 @@ interface Particle {
   r: number;
   dx: number;
   dy: number;
-  color: string;
+  /** Pre-blurred orb, drawn centred on (x, y) at `size` CSS px. */
+  sprite: HTMLCanvasElement;
+  size: number;
+}
+
+/**
+ * Orbs are blurred, so their sprites are rasterised at half resolution and
+ * scaled up on draw; the softness hides the upsampling and it quarters memory.
+ */
+const SPRITE_SCALE = 0.5;
+
+/**
+ * Rasterise one blurred orb. The blur is the expensive part, so it runs once
+ * per orb here rather than on every frame (it used to run ~60x a second over
+ * the whole viewport, which is what made the hub stutter).
+ */
+function makeSprite(r: number, color: string, blur: number) {
+  // A Gaussian blur bleeds ~3 standard deviations past the shape's edge.
+  const size = (r + blur * 3) * 2;
+  const px = Math.ceil(size * SPRITE_SCALE);
+  const sprite = document.createElement('canvas');
+  sprite.width = px;
+  sprite.height = px;
+  const sctx = sprite.getContext('2d');
+  if (sctx) {
+    sctx.scale(SPRITE_SCALE, SPRITE_SCALE);
+    const c = size / 2;
+    // Filter lengths ignore the context transform, so scale the blur by hand
+    // to keep it at `blur` CSS px once the sprite is drawn back at full size.
+    sctx.filter = `blur(${blur * SPRITE_SCALE}px)`;
+    const gradient = sctx.createRadialGradient(c, c, 0, c, c, r);
+    gradient.addColorStop(0, color);
+    gradient.addColorStop(1, 'rgba(0,0,0,0)');
+    sctx.fillStyle = gradient;
+    sctx.beginPath();
+    sctx.arc(c, c, r, 0, Math.PI * 2);
+    sctx.fill();
+  }
+  return { sprite, size };
 }
 
 /**
  * Single <canvas> drifting-particle backdrop. Large, heavily blurred cyan
  * (plus a few warm) orbs moving slowly and wrapping at the edges.
- * No animation library — one requestAnimationFrame loop.
+ * No animation library — one requestAnimationFrame loop that only blits
+ * pre-blurred sprites.
  */
 export function ParticleBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -39,14 +78,15 @@ export function ParticleBackground() {
       items = Array.from({ length: cfg.count }, () => {
         const r =
           cfg.minRadius + Math.random() * (cfg.maxRadius - cfg.minRadius);
+        const color =
+          cfg.palette[Math.floor(Math.random() * cfg.palette.length)];
         return {
           x: Math.random() * width,
           y: Math.random() * height,
           r,
           dx: (Math.random() - 0.5) * 2 * cfg.maxSpeed,
           dy: (Math.random() - 0.5) * 2 * cfg.maxSpeed,
-          color:
-            cfg.palette[Math.floor(Math.random() * cfg.palette.length)],
+          ...makeSprite(r, color, cfg.blur),
         };
       });
     };
@@ -63,19 +103,10 @@ export function ParticleBackground() {
 
     const draw = () => {
       ctx.clearRect(0, 0, width, height);
-      ctx.filter = `blur(${cfg.blur}px)`;
-
       for (const p of items) {
-        const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r);
-        gradient.addColorStop(0, p.color);
-        gradient.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.fillStyle = gradient;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fill();
+        const half = p.size / 2;
+        ctx.drawImage(p.sprite, p.x - half, p.y - half, p.size, p.size);
       }
-
-      ctx.filter = 'none';
     };
 
     const step = () => {

@@ -47,11 +47,12 @@ const demos: DemoCard[] = [
     live: true,
   },
   {
-    slug: 'scout',
-    name: 'Scout',
+    slug: 'leads',
+    name: 'Leads',
     role: 'Prospecting Agent',
-    blurb: 'Finds and qualifies prospects that match your best customers.',
-    live: false,
+    blurb: 'See Cynea find, write, and send in three minutes.',
+    live: true,
+    external: 'https://leads.cynea.ai/demo',
   },
   {
     slug: 'reception',
@@ -144,7 +145,15 @@ function DemoTile({ demo, delay }: { demo: DemoCard; delay: number }) {
 
       {demo.live && (
         <span className="mt-5 inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-eyebrow text-accent transition-transform duration-300 ease-demo group-hover:translate-x-1">
-          Open demo →
+          {demo.external ? (
+            <>
+              Open demo
+              <ExternalIcon />
+              <span className="sr-only">(opens in a new tab)</span>
+            </>
+          ) : (
+            'Open demo →'
+          )}
         </span>
       )}
     </>
@@ -165,17 +174,56 @@ function DemoTile({ demo, delay }: { demo: DemoCard; delay: number }) {
     );
   }
 
-  return (
-    <Link
-      href={`/${demo.slug}`}
-      style={{ animationDelay: `${delay}ms` }}
-      className={`demo-rise demo-sheen ${shell} border-accent/25 bg-card hover:-translate-y-0.5 hover:border-accent/50 hover:bg-card-hover hover:shadow-glow-accent`}
-    >
+  const liveProps = {
+    style: { animationDelay: `${delay}ms` },
+    className: `demo-rise demo-sheen ${shell} border-accent/25 bg-card hover:-translate-y-0.5 hover:border-accent/50 hover:bg-card-hover hover:shadow-glow-accent`,
+  };
+  const liveInner = (
+    <>
       <span
         aria-hidden
         className="demo-glow pointer-events-none absolute -inset-4 -z-10 rounded-[26px] bg-accent/15 opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-100"
       />
       {inner}
+    </>
+  );
+
+  if (demo.external) {
+    return (
+      <a
+        href={demo.external}
+        target="_blank"
+        rel="noopener noreferrer"
+        {...liveProps}
+      >
+        {liveInner}
+      </a>
+    );
+  }
+
+  return (
+    <Link href={`/${demo.slug}`} {...liveProps}>
+      {liveInner}
     </Link>
+  );
+}
+
+/** Square-with-arrow glyph marking a link that leaves the hub. */
+function ExternalIcon() {
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 16 16"
+      className="h-3 w-3"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.6}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12.5 9.5v3a1 1 0 0 1-1 1h-8a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1h3" />
+      <path d="M9.5 2.5h4v4" />
+      <path d="M13.5 2.5 7.5 8.5" />
+    </svg>
   );
 }

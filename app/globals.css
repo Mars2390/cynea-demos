@@ -1298,6 +1298,15 @@ body {
 
 /* --- premium utilities --- */
 
+/* Each blob carries a 110–120px blur. Promoting them to their own compositor
+   layers rasterises that blur once and only transforms it per frame; without
+   this the drift repaints the blur continuously and the hub stutters. */
+.demo-mesh-a,
+.demo-mesh-b,
+.demo-mesh-c {
+  will-change: transform;
+}
+
 .demo-mesh-a {
   animation: demo-mesh-a 26s ease-in-out infinite;
 }

@@ -77,4 +77,9 @@ export interface DemoCard {
   role: string;
   blurb: string;
   live: boolean;
+  /**
+   * Absolute URL for a demo hosted outside this hub. When set, the tile opens
+   * it in a new tab instead of routing to /{slug}.
+   */
+  external?: string;
 }
