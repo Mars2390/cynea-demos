@@ -54,20 +54,6 @@ const demos: DemoCard[] = [
     live: true,
     external: 'https://leads.cynea.ai/demo',
   },
-  {
-    slug: 'reception',
-    name: 'Reception',
-    role: 'Front-Desk Agent',
-    blurb: 'Answers, qualifies and routes every inbound enquiry.',
-    live: false,
-  },
-  {
-    slug: 'social',
-    name: 'Social',
-    role: 'Social Media Agent',
-    blurb: 'Plans, writes and schedules content across every channel.',
-    live: false,
-  },
 ];
 
 export default function HubPage() {
