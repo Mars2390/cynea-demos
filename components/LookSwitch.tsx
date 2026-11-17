@@ -18,7 +18,7 @@ export const LOOK_BOOT_SCRIPT = `(function(){try{var q=new URLSearchParams(locat
  * Glass". Toggles <html data-look> in place so the two can be compared on the
  * same URL. Remove with the prototype.
  *
- * Renders as a sibling of the Guide and Voice toggles: DemoShell places it in
+ * Renders as a sibling of the Guide toggle: DemoShell places it in
  * the header cluster; the hub and the ready screens pin it to the page's top
  * corner (`corner`), above their heroes. It used to float fixed at the
  * bottom-right, where it sat on the guide bubble at phone widths.

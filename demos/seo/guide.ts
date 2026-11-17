@@ -3,7 +3,7 @@ import type { GuideScript } from '@/lib/types';
 /**
  * Guide script, keyed by step id. The first cue of each step is the agent's
  * own line, verbatim from the brief; the cues after it point at the evidence
- * on screen. Each cue is narrated and held until the line has been said.
+ * on screen.
  */
 export const guide: GuideScript = {
   keyword: [

@@ -12,7 +12,6 @@ import { Pill } from '@/components/ui/Pill';
 import { LookSwitch } from '@/components/LookSwitch';
 import { useIntroSettled, useKeyboard, useReducedMotion } from '@/lib/hooks';
 import { tweenScrollTo } from '@/lib/scroll';
-import { cancel as cancelSpeech, prime as primeVoice, speak } from '@/lib/voice';
 import { agent, descriptions, readyStep, steps } from '@/demos/edtech/config';
 import { guide } from '@/demos/edtech/guide';
 import {
@@ -146,25 +145,6 @@ export function EdtechDemo({ initialStep }: { initialStep: string }) {
       else goto(READY);
     },
   });
-
-  // The narrator's closer on the ready screen. The step cues are spoken by
-  // GuideBubble; here there is no bubble, so the shell speaks. Cancelled on
-  // Replay, on ← back to the last step, or when the page goes away.
-  useEffect(() => {
-    if (!isReady) return;
-    primeVoice(); // listen for the gesture from the first frame
-    const t = setTimeout(
-      () =>
-        speak(
-          `That was the ${agent.name} suite. Ready to try this with your own school? Book a demo with Irene.`,
-        ),
-      700,
-    );
-    return () => {
-      clearTimeout(t);
-      cancelSpeech();
-    };
-  }, [isReady, runId]);
 
   /** 0–1 across the whole flow, including the ready screen. */
   const progress = isReady ? 1 : (activeIndex + 1) / (steps.length + 1);

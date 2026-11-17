@@ -12,7 +12,6 @@ import { Pill } from '@/components/ui/Pill';
 import { LookSwitch } from '@/components/LookSwitch';
 import { useIntroSettled, useKeyboard, useReducedMotion } from '@/lib/hooks';
 import { tweenScrollTo } from '@/lib/scroll';
-import { cancel as cancelSpeech, prime as primeVoice, speak } from '@/lib/voice';
 import { agent, readyStep, steps } from '@/demos/compliance/config';
 import { guide } from '@/demos/compliance/guide';
 import {
@@ -42,7 +41,7 @@ function stepFromPathname(pathname: string): string {
  * Same engine as the standalone demos — the step lives in the URL path and the
  * server already rendered the right one via `initialStep`, so there is no
  * switch-on-hydration. In-demo navigation uses history.pushState so this
- * component never unmounts, which keeps the Guide toggle and the narrator
+ * component never unmounts, which keeps the Guide toggle
  * alive across all the steps.
  *
  * There is deliberately no ?step= back-compat here: /compliance is a new route
@@ -143,25 +142,6 @@ export function ComplianceDemo({ initialStep }: { initialStep: string }) {
       else goto(READY);
     },
   });
-
-  // The narrator's closer on the ready screen. The step cues are spoken by
-  // GuideBubble; here there is no bubble, so the shell speaks. Cancelled on
-  // Replay, on ← back to the last step, or when the page goes away.
-  useEffect(() => {
-    if (!isReady) return;
-    primeVoice(); // listen for the gesture from the first frame
-    const t = setTimeout(
-      () =>
-        speak(
-          `That was the ${agent.name} suite. Ready to try this with your own business? Book a demo with Irene.`,
-        ),
-      700,
-    );
-    return () => {
-      clearTimeout(t);
-      cancelSpeech();
-    };
-  }, [isReady, runId]);
 
   /** 0–1 across the whole flow, including the ready screen. */
   const progress = isReady ? 1 : (activeIndex + 1) / (steps.length + 1);

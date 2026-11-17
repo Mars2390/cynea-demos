@@ -7,7 +7,6 @@ import { Stepper } from './Stepper';
 import { MeshBackground } from './MeshBackground';
 import { TopProgressBar } from './TopProgressBar';
 import { CHROME_TOP } from '@/lib/scroll';
-import { VoiceToggle } from './VoiceToggle';
 import { LookSwitch } from './LookSwitch';
 
 /**
@@ -107,7 +106,6 @@ export function DemoShell({
 
           <div className="ml-auto flex shrink-0 items-center gap-2">
             <Toggle label="Guide" on={guideOn} onClick={onToggleGuide} />
-            <VoiceToggle />
             <LookSwitch />
             {onToggleAutoplay && (
               <Toggle
